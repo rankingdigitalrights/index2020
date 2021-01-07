@@ -3,10 +3,12 @@ import path from "path";
 
 import {emptyCompany} from "./formatter";
 import {
+  Company,
   CompanyDetails,
   CompanyIndex,
   CompanyKind,
   CompanyRank,
+  Indicator,
   IndicatorIndex,
 } from "./types";
 
@@ -32,6 +34,9 @@ export const loadJsonDir = <T extends unknown>(
     }),
   );
 };
+
+export const allCompanies = loadJson<Company[]>("data/companies.json");
+export const allIndicators = loadJson<Indicator[]>("data/indicators.json");
 
 export const companyIndices = loadJsonDir<CompanyIndex>(
   "data/companies",

@@ -1,4 +1,4 @@
-import {companyIndices, indicatorIndices} from "./data";
+import {allCompanies, allIndicators} from "./data";
 
 export type NavigationNode = {
   label: string;
@@ -8,8 +8,8 @@ export type NavigationNode = {
 
 const generateNavigation = async (): Promise<NavigationNode[]> => {
   const [companies, indicators] = await Promise.all([
-    companyIndices(),
-    indicatorIndices(),
+    allCompanies(),
+    allIndicators(),
   ]);
 
   return [
@@ -44,8 +44,8 @@ const generateNavigation = async (): Promise<NavigationNode[]> => {
               if (a.id > b.id) return 1;
               return 0;
             })
-            .map(({id, companyPretty}) => ({
-              label: companyPretty,
+            .map(({id, name}) => ({
+              label: name,
               href: `/companies/${id}`,
             })),
         },
