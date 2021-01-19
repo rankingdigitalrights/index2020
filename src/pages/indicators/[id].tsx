@@ -4,20 +4,34 @@ import React, {useState} from "react";
 import CompanyElements from "../../components/company-elements";
 import CompanySelector from "../../components/company-selector";
 import ExpandableDescription from "../../components/expandable-description";
-import IndicatorCompaniesChart from "../../components/indicator-companies-chart";
+import IndicatorCompaniesChartContainer from "../../components/indicator-companies-chart-container";
 import IndicatorSelector, {
   IndicatorSelectOption,
 } from "../../components/indicator-selector";
 import Layout from "../../components/layout";
 import SortSelector from "../../components/sort-selector";
 import ToggleSwitch from "../../components/toggle-switch";
-import {allIndicators, companyIndices, indicatorData} from "../../data";
 import {
-  IndicatorIndex,
+  allElements,
+  allIndicators,
+  companyServices,
+  indicatorAverages,
+  indicatorCompanies,
+  indicatorDetails,
+  indicatorElements,
+  indicatorScores,
+} from "../../data";
+import {
+  Element,
+  IndicatorAverages,
+  IndicatorCompanyScore,
+  IndicatorDetails,
+  IndicatorElements,
   SelectOption,
   SortStrategies,
   SortStrategy,
 } from "../../types";
+import {isValidService, unreachable} from "../../utils";
 
 type Params = {
   params: {
@@ -30,17 +44,22 @@ interface CompanySelectOption extends SelectOption {
 }
 
 interface IndicatorPageProps {
-  index: IndicatorIndex;
+  details: IndicatorDetails;
   indicators: IndicatorSelectOption[];
   companies: CompanySelectOption[];
+  scores: IndicatorCompanyScore[];
+  averages: IndicatorAverages;
+  elements: IndicatorElements;
+  elementDescriptions: Element[];
+  services: Record<string, string[]>;
 }
 
 export const getStaticPaths = async () => {
   const data = await allIndicators();
   const paths = data
     .filter(({isParent}) => !isParent)
-    .map(({id}) => ({
-      params: {id},
+    .map(({name}) => ({
+      params: {id: name},
     }));
 
   return {
@@ -50,30 +69,63 @@ export const getStaticPaths = async () => {
 };
 
 export const getStaticProps = async ({params: {id: indicatorId}}: Params) => {
-  const index = (await indicatorData(indicatorId)) as IndicatorIndex;
+  const indicator = (await allIndicators()).find(
+    ({name}) => name === indicatorId,
+  );
+  const allCompanies = await indicatorCompanies(indicatorId);
+
+  if (!indicator)
+    return unreachable(`Failed to load indicator for ${indicatorId}`);
+
+  const details = await indicatorDetails(indicatorId);
+  const scores = await indicatorScores(indicatorId);
+  const companies = allCompanies.map(({id: companyId, name}) => {
+    const score = scores.find(({id}) => id === companyId);
+
+    return {
+      value: companyId,
+      label: name,
+      score: score ? score.score : "NA",
+    };
+  });
+  const averages = await indicatorAverages(indicatorId);
+  const elements = await indicatorElements(indicatorId);
+  const elementDescriptions = (await allElements()).filter(
+    (e) => e.indicatorId === indicator.id,
+  );
   const indicators = (await allIndicators()).map(
-    ({id: value, label, isParent, parent}) => ({
+    ({name: value, label, isParent, parent}) => ({
       value,
       isParent,
       hasParent: !!parent,
       label: `${value}. ${label}`,
     }),
   );
-  const companyIndex = await companyIndices();
-  const companies = companyIndex.map(({id: value, companyPretty: label}) => {
-    const score = index.scores[value];
-    return {
-      value,
-      label,
-      score: score === "NA" || !score ? 0 : score,
-    };
-  });
+  const services = (
+    await Promise.all(
+      allCompanies.map(async ({id: companyId, kind: companyKind}) => {
+        const localServices = (await companyServices(companyId))
+          .filter(({id: serviceId}) =>
+            isValidService(serviceId, indicator.id, companyId, companyKind),
+          )
+          .map(({id}) => id);
+        return {
+          [companyId]: localServices,
+        };
+      }),
+    )
+  ).reduce((memo, localServices) => ({...localServices, ...memo}));
 
   return {
     props: {
-      index,
+      details,
       indicators,
       companies,
+      scores,
+      averages,
+      elements,
+      elementDescriptions,
+      services,
     },
   };
 };
@@ -83,7 +135,7 @@ const strategies: SortStrategies<CompanySelectOption> = new Map<
   SortStrategy<CompanySelectOption>
 >();
 strategies.set(
-  "Alphabetically",
+  "Company",
   (options: CompanySelectOption[]): CompanySelectOption[] => {
     return options.sort((a, b) => {
       if (a.label < b.label) return -1;
@@ -105,9 +157,18 @@ strategies.set(
 
 const identitySortFn: SortStrategy = (xs) => xs;
 
-const IndicatorPage = ({index, indicators, companies}: IndicatorPageProps) => {
+const IndicatorPage = ({
+  details,
+  indicators,
+  companies,
+  scores,
+  elements,
+  averages,
+  elementDescriptions,
+  services,
+}: IndicatorPageProps) => {
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
-  const [sortStrategy, setSortStrategy] = useState<string>("Alphabetically");
+  const [sortStrategy, setSortStrategy] = useState<string>("Company");
   const [literalValues, setLiteralValues] = useState(false);
 
   const router = useRouter();
@@ -129,14 +190,13 @@ const IndicatorPage = ({index, indicators, companies}: IndicatorPageProps) => {
   };
 
   const sortStrategyFn = strategies.get(sortStrategy) || identitySortFn;
-  const companySortStrategyFn =
-    strategies.get("Alphabetically") || identitySortFn;
+  const companySortStrategyFn = strategies.get("Company") || identitySortFn;
 
   const activeSelector: IndicatorSelectOption = {
-    value: index.id,
-    isParent: index.isParent,
-    hasParent: index.hasParent,
-    label: `${index.id}. ${index.label}`,
+    value: details.name,
+    isParent: details.isParent,
+    hasParent: details.hasParent,
+    label: `${details.name}. ${details.label}`,
   };
 
   const sortOptions: SelectOption[] = [...strategies.keys()].map((value) => ({
@@ -151,12 +211,6 @@ const IndicatorPage = ({index, indicators, companies}: IndicatorPageProps) => {
           companies.filter(({value}) => selectedCompanies.includes(value)),
         );
 
-  const elementDescriptions = Object.values(
-    Object.values(index.elements)[0] || {},
-  )[0];
-
-  const hasScores = Object.keys(index.scores).length > 0;
-
   return (
     <Layout>
       <div className="container mx-auto">
@@ -168,15 +222,15 @@ const IndicatorPage = ({index, indicators, companies}: IndicatorPageProps) => {
           />
 
           <section className="w-full mt-6 mx-auto  text-sm font-circular">
-            {index.description}
+            {details.description}
           </section>
 
           <section className="w-full mt-6 mx-auto">
             <ExpandableDescription label="Elements">
               <ol className="list-none list-decimal mt-1">
-                {elementDescriptions.map(({description, label}) => {
+                {elementDescriptions.map(({description, id}) => {
                   return (
-                    <li key={`element-description-${label}`} className="ml-4">
+                    <li key={`element-description-${id}`} className="ml-4">
                       {description}
                     </li>
                   );
@@ -187,25 +241,23 @@ const IndicatorPage = ({index, indicators, companies}: IndicatorPageProps) => {
 
           <section className="w-full mt-2 mx-auto">
             <ExpandableDescription label="Research guidance">
-              <p className="mt-1">{index.guidance}</p>
+              <p className="mt-1">{details.guidance}</p>
             </ExpandableDescription>
           </section>
 
           <div className="mt-10">
-            {hasScores && (
-              <IndicatorCompaniesChart
-                category={index.category}
-                scores={index.scores}
-              />
-            )}
+            <IndicatorCompaniesChartContainer
+              category={details.category}
+              scores={scores}
+            />
           </div>
         </div>
       </div>
 
       <div className="bg-beige pt-6 pb-6 mt-6">
         <div className="container mx-auto md:w-8/12 w-11/12">
-          <div className="flex flex-row w-9/12 mx-auto justify-between items-center">
-            <div className="w-1/2 flex flex-col justify-between h-14">
+          <div className="flex flex-col md:flex-row md:w-9/12 md:mx-auto md:justify-between items-center">
+            <div className="w-full md:w-1/2 flex flex-col justify-between h-14">
               <span className="text-sm font-circular">Select companies:</span>
 
               <CompanySelector
@@ -217,7 +269,7 @@ const IndicatorPage = ({index, indicators, companies}: IndicatorPageProps) => {
               />
             </div>
 
-            <div className="w-1/4 flex flex-col justify-between h-14 mx-6">
+            <div className="w-full mt-2 md:mt-0 md:w-1/4 flex flex-col justify-between h-14 mx-6">
               <span className="text-sm font-circular">Sort:</span>
 
               <SortSelector
@@ -227,33 +279,37 @@ const IndicatorPage = ({index, indicators, companies}: IndicatorPageProps) => {
               />
             </div>
 
-            <div className="flex flex-col justify-between h-14">
+            <div className="w-full md:w-1/4 flex flex-col lg:flex-row lg:justify-between h-14">
               <span className="text-xs font-circular">&nbsp;</span>
 
               <div>
-                <ToggleSwitch
-                  label="Literal values"
-                  onChange={handleToggleSwitch}
-                />
+                <ToggleSwitch label="Points" onChange={handleToggleSwitch} />
               </div>
             </div>
           </div>
 
-          {dataGrids.map(({value, label}) => (
-            <CompanyElements
-              key={`company-element-${value}`}
-              indicatorLabel={index.label}
-              company={label}
-              score={
-                index.scores[value] === undefined ? "NA" : index.scores[value]
-              }
-              averages={
-                index.averages[value] === undefined ? {} : index.averages[value]
-              }
-              companyElements={index.elements[value] || {}}
-              literalValues={literalValues}
-            />
-          ))}
+          {dataGrids.map(({value: companyId, label}) => {
+            const {score} = scores.find(({id}) => id === companyId) || {
+              score: "NA",
+            };
+
+            return (
+              <CompanyElements
+                key={`company-element-${companyId}`}
+                indicator={details.name}
+                label={details.label}
+                company={label}
+                score={score}
+                averages={
+                  averages[companyId] === undefined ? {} : averages[companyId]
+                }
+                companyElements={elements[companyId] || {}}
+                elementDescriptions={elementDescriptions}
+                literalValues={literalValues}
+                services={services[companyId] || []}
+              />
+            );
+          })}
         </div>
       </div>
     </Layout>

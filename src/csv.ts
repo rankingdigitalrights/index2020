@@ -2,6 +2,7 @@ import parse from "csv-parse";
 import fs from "fs";
 import path from "path";
 
+import {byScore} from "./sort";
 import {
   Company,
   CompanyIndex,
@@ -12,18 +13,31 @@ import {
   ElementValue,
   IndexYear,
   Indicator,
+  IndicatorAverage,
+  IndicatorAverages,
   IndicatorCategory,
+  IndicatorCompanyScore,
+  IndicatorDetails,
+  IndicatorElement,
+  IndicatorElements,
   IndicatorIndex,
+  IndicatorIndexElement,
   IndicatorNested,
   IndicatorScore,
   Scores,
+  Service,
+  ServiceKind,
 } from "./types";
 import {
   floatOrNA,
   isIndicatorFamily,
+  isValidService,
   mapBoolean,
   mapCategory,
+  mapCompanyKind,
+  mapCompanyKindOrNil,
   mapElementValue,
+  mapServiceKind,
   memoizeAsync,
   stringOrNil,
   unreachable,
@@ -90,6 +104,14 @@ type CsvCompanySpec = {
   country: string;
 };
 
+type CsvServiceSpec = {
+  company: string;
+  companyPretty: string;
+  kind: ServiceKind;
+  service: string;
+  label: string;
+};
+
 type CsvIndicatorSpec = {
   category: IndicatorCategory;
   indicator: string;
@@ -110,6 +132,12 @@ type CsvElementSpec = {
   elementNr: number;
   label: string;
   description: string;
+  excludedCompanyKind?: CompanyKind;
+};
+
+type CsvIndicatorExclude = {
+  indicatorId: string;
+  exclude: CompanyKind;
 };
 
 /*
@@ -275,6 +303,17 @@ const loadCompanySpecsCsv = loadCsv<CsvCompanySpec>((record) => ({
 }));
 
 /*
+ * Load the service specs.
+ */
+const loadServiceSpecsCsv = loadCsv<CsvServiceSpec>((record) => ({
+  company: record.CompanyClean,
+  companyPretty: record.Company,
+  kind: mapServiceKind(record.Class),
+  service: record.Label,
+  label: record.LabelShort,
+}));
+
+/*
  * Load the indicator specs.
  */
 const loadIndicatorSpecsCsv = loadCsv<CsvIndicatorSpec>((record) => ({
@@ -300,6 +339,15 @@ const loadElementSpecsCsv = loadCsv<CsvElementSpec>((record) => ({
   elementNr: Number.parseInt(record.elemNr, 10),
   label: record.labelShort,
   description: record.description,
+  excludedCompanies: mapCompanyKindOrNil(record.excludedCompanies),
+}));
+
+/*
+ * Load a list of excluded company kinds for an indicator.
+ */
+const loadIndicatorExcludesCsv = loadCsv<CsvIndicatorExclude>((record) => ({
+  indicatorId: record.Indicator,
+  exclude: mapCompanyKind(record.exclude),
 }));
 
 /*
@@ -319,18 +367,39 @@ export const companies = memoizeAsync(
 );
 
 /*
+ * Generate a list of services for a company.
+ */
+export const companyServices = memoizeAsync(
+  async (companyId: string): Promise<Service[]> => {
+    const csvServiceSpecs = await loadServiceSpecsCsv(
+      "csv/2020-service-specs.csv",
+    );
+
+    return csvServiceSpecs
+      .filter(({company}) => company === companyId)
+      .map(({kind, service: id, label: name}) => {
+        if (kind === "OpCom") return {id: "OpCom", name: "OpCom", kind};
+        if (kind === "Group") return {id: "Group", name, kind};
+        return {id, name, kind};
+      });
+  },
+);
+
+/*
  * Generate a complete list of all indicators.
  */
 export const indicators = memoizeAsync(
   async (): Promise<Indicator[]> => {
-    const csvIndicators = await loadIndicatorSpecsCsv(
-      "csv/2020-indicator-specs.csv",
-    );
+    const [csvIndicators, csvExcludes] = await Promise.all([
+      loadIndicatorSpecsCsv("csv/2020-indicator-specs.csv"),
+      loadIndicatorExcludesCsv("csv/2020-indicator-excludes.csv"),
+    ]);
 
     return csvIndicators.map(
       ({
-        category,
+        indicator,
         display,
+        category,
         indicatorNr,
         indicatorSuffix,
         label,
@@ -352,12 +421,17 @@ export const indicators = memoizeAsync(
           });
           if (!parentIndicator)
             return unreachable(`Unable to find parent for ${display}.`);
-          parent = parentIndicator.display;
+          parent = parentIndicator.indicator;
         }
 
+        const isExcluded = csvExcludes.find(
+          ({indicatorId}) => indicatorId === indicator,
+        );
+
         return {
-          id: display,
+          id: indicator,
           name: display,
+          exclude: isExcluded?.exclude,
           category,
           isParent,
           parent,
@@ -367,6 +441,204 @@ export const indicators = memoizeAsync(
         };
       },
     );
+  },
+);
+
+/*
+ * Generate a complete list of all elements.
+ */
+export const elements = memoizeAsync(
+  async (): Promise<Element[]> => {
+    const csvElements = await loadElementSpecsCsv("csv/2020-element-specs.csv");
+
+    return csvElements.map(
+      ({
+        element,
+        label,
+        elementNr,
+        category,
+        indicator,
+        description,
+        excludedCompanyKind,
+      }) => {
+        const isTelecom = excludedCompanyKind !== "telecom";
+        const isPlatform = excludedCompanyKind !== "internet";
+
+        return {
+          id: element,
+          name: label,
+          position: elementNr,
+          indicatorId: indicator,
+          category,
+          description,
+          isTelecom,
+          isPlatform,
+        };
+      },
+    );
+  },
+);
+
+/*
+ * List all companies for a single indicator.
+ */
+export const indicatorCompanies = memoizeAsync(
+  async (indicatorId: string): Promise<Company[]> => {
+    const [allCompanies, allIndicators] = await Promise.all([
+      companies(),
+      indicators(),
+    ]);
+
+    const indicator = allIndicators.find(({id}) => id === indicatorId);
+    if (!indicator)
+      return unreachable(
+        `Indicator ${indicatorId} not found while listing the companies for the indicator.`,
+      );
+
+    return allCompanies.filter(({kind}) => indicator.exclude !== kind);
+  },
+);
+
+/*
+ * Generate scoring list for one indicator and one company kind.
+ */
+export const indicatorScores = memoizeAsync(
+  async (indicatorId: string): Promise<IndicatorCompanyScore[]> => {
+    const [allCompanies, csvIndicators] = await Promise.all([
+      indicatorCompanies(indicatorId),
+      loadIndicatorsCsv("csv/2020-indicators.csv"),
+    ]);
+
+    return allCompanies
+      .map(({id, kind}) => {
+        const indicator = csvIndicators
+          .filter((i) => indexYears.has(i.index))
+          .find((i) => i.company === id && i.indicator === indicatorId);
+
+        if (!indicator) {
+          return unreachable(
+            `Indicator company score ${indicatorId} not found for ${id}`,
+          );
+        }
+
+        return {id, kind, score: indicator.score};
+      })
+      .sort(byScore("desc"));
+  },
+);
+
+/*
+ * Generate elements for an indicator and company.
+ */
+const indicatorCompanyElements = async (
+  indicatorId: string,
+  companyId: string,
+  companyKind: CompanyKind,
+  allElements: Element[],
+  csvElements: CsvElement[],
+): Promise<Record<string, IndicatorElement[]>> => {
+  const allServices = await companyServices(companyId);
+
+  return allServices
+    .filter((service) =>
+      isValidService(service.id, indicatorId, companyId, companyKind),
+    )
+    .reduce((memo, {id: serviceId}) => {
+      const indicatorElements: IndicatorElement[] = csvElements
+        .filter(
+          (element) =>
+            element.indicator === indicatorId &&
+            element.company === companyId &&
+            element.service === serviceId &&
+            indexYears.has(element.index) &&
+            isValidService(
+              element.service,
+              element.indicator,
+              companyId,
+              companyKind,
+            ),
+        )
+        .map(({element, score, value}) => {
+          const {position} =
+            allElements.find((e) => e.id === element) ||
+            unreachable(`Element ${element} not found in element specs.`);
+          return {
+            id: `${indicatorId}-${companyId}-${serviceId}-${element}`,
+            name: element,
+            position,
+            score,
+            value,
+          };
+        })
+        .sort((a, b) => {
+          if (a.position < b.position) return -1;
+          if (a.position > b.position) return 1;
+          return 0;
+        });
+
+      return {[serviceId]: indicatorElements, ...memo};
+    }, {} as Record<string, IndicatorElement[]>);
+};
+
+/*
+ * Generate elements for an indicator.
+ */
+export const indicatorElements = memoizeAsync(
+  async (indicatorId: string): Promise<IndicatorElements> => {
+    const [allCompanies, allElements, csvElements] = await Promise.all([
+      indicatorCompanies(indicatorId),
+      elements(),
+      loadElementsCsv("csv/2020-elements.csv"),
+    ]);
+
+    return allCompanies.reduce(
+      async (memo, {id: companyId, kind: companyKind}) => {
+        const agg = await memo;
+
+        const companyElements = await indicatorCompanyElements(
+          indicatorId,
+          companyId,
+          companyKind,
+          allElements,
+          csvElements,
+        );
+        return {[companyId]: companyElements, ...agg};
+      },
+      Promise.resolve({}),
+    );
+  },
+);
+
+/*
+ * Generate indicator averages for an indicator and for a service.
+ */
+export const indicatorAverages = memoizeAsync(
+  async (indicatorId: string): Promise<IndicatorAverages> => {
+    const [allCompanies, csvLevels] = await Promise.all([
+      indicatorCompanies(indicatorId),
+      loadLevelsCsv("csv/2020-levels.csv"),
+    ]);
+
+    return allCompanies.reduce(async (memo, {id: companyId}) => {
+      const data = await memo;
+      const allServices = await companyServices(companyId);
+
+      const companyAverages = allServices.reduce((agg, {id: serviceId}) => {
+        const levels = csvLevels.find(
+          (l) =>
+            l.company === companyId &&
+            l.service === serviceId &&
+            l.indicator === indicatorId &&
+            indexYears.has(l.index),
+        );
+        // FIXME: I assume a missing level indicates that we deal with a parent
+        // indicator, so let's skip it. Need to verify this though.
+        if (!levels) return agg;
+
+        return {[serviceId]: levels.score, ...agg};
+      }, {} as IndicatorAverage);
+      return {[companyId]: companyAverages, ...data};
+    }, Promise.resolve({}));
   },
 );
 
@@ -487,28 +759,36 @@ export const companyIndices = memoizeAsync(
 );
 
 /*
- * Depending on the indicator we have to include different elements for an
- * indicator.
+ * Generate details for an indicator.
  */
-const isValidElement = (element: CsvElement): boolean => {
-  // Indicators G1 and G5 only have elements of Group and OpCom (Company).
-  if (["G01", "G05"].includes(element.indicator))
-    return ["OpCom", "Group"].includes(element.service);
+export const indicatorDetails = memoizeAsync(
+  async (indicatorId: string): Promise<IndicatorDetails> => {
+    const csvIndicatorSpecs = await loadIndicatorSpecsCsv(
+      "csv/2020-indicator-specs.csv",
+    );
 
-  // Indicators G2, G3 and G4x have services and Group and OpCom (Full).
-  if (
-    element.category === "governance" &&
-    [2, 3, 4].includes(element.indicatorNr)
-  )
-    return true;
+    const spec = csvIndicatorSpecs.find(
+      ({indicator}) => indicator === indicatorId,
+    );
 
-  // All F and P indicators, and G6x only have service elements (Services).
-  return !["OpCom", "Group"].includes(element.service);
-};
+    if (!spec) return unreachable(`No indicator spec found for ${indicatorId}`);
+
+    return {
+      id: spec.indicator,
+      name: spec.display,
+      category: spec.category,
+      label: spec.label,
+      description: spec.description,
+      guidance: spec.guidance,
+      isParent: spec.isParent,
+      hasParent: /[a-z]+$/.test(spec.indicator),
+    };
+  },
+);
 
 /*
- * Load the source data and construct the indicator index for 2020. This
- * function is called to populate the website pages.
+ * Generate full indicator indices. This is deprecated but still in use for the
+ * storybook fixtures.
  */
 export const indicatorIndices = memoizeAsync(
   async (): Promise<IndicatorIndex[]> => {
@@ -518,6 +798,7 @@ export const indicatorIndices = memoizeAsync(
       csvElements,
       csvIndicatorSpecs,
       csvElementSpecs,
+      // allIndicators,
       allCompanies,
     ] = await Promise.all([
       loadIndicatorsCsv("csv/2020-indicators.csv"),
@@ -525,17 +806,34 @@ export const indicatorIndices = memoizeAsync(
       loadElementsCsv("csv/2020-elements.csv"),
       loadIndicatorSpecsCsv("csv/2020-indicator-specs.csv"),
       loadElementSpecsCsv("csv/2020-element-specs.csv"),
+      // indicators(),
       companies(),
     ]);
 
     return csvIndicatorSpecs.map((spec) => {
-      const elements: Element[] = csvElements
-        .filter(
-          (element) =>
+      const indexElements: IndicatorIndexElement[] = csvElements
+        .filter((element) => {
+          // I'm not super happy about having to look for a company for every
+          // element, but once I refactor the fixtures, this whole data
+          // structure should go anyways.
+          const company = allCompanies.find(({id}) => id === element.company);
+
+          if (!company)
+            return unreachable(
+              `Company ${element.company} not found for element ${element.element}`,
+            );
+
+          return (
             element.indicator === spec.indicator &&
             indexYears.has(element.index) &&
-            isValidElement(element),
-        )
+            isValidService(
+              element.service,
+              element.indicator,
+              element.company,
+              company.kind,
+            )
+          );
+        })
         .map(({element, company: companyId, score, value, kind, service}) => {
           const {category, elementNr, label, description} =
             csvElementSpecs.find((e) => e.element === element) ||
@@ -558,7 +856,7 @@ export const indicatorIndices = memoizeAsync(
       // Filter out companies that have no elements for this indicator.
       const companyIds = allCompanies
         .filter(({id}) => {
-          return !!elements.find(({companyId}) => id === companyId);
+          return !!indexElements.find(({companyId}) => id === companyId);
         })
         .map(({id}) => id);
 
@@ -572,7 +870,7 @@ export const indicatorIndices = memoizeAsync(
       const services = companyIds.reduce(
         (memo, company) => ({
           [company]: [
-            ...elements
+            ...indexElements
               .filter((element) => element.companyId === company)
               .reduce((agg, {service}) => agg.add(service), new Set<string>()),
           ],
@@ -609,7 +907,7 @@ export const indicatorIndices = memoizeAsync(
         return {
           [company]: services[company].reduce(
             (agg, service) => ({
-              [service]: elements
+              [service]: indexElements
                 .filter(
                   (element) =>
                     element.companyId === company &&
@@ -622,11 +920,11 @@ export const indicatorIndices = memoizeAsync(
                 }),
               ...agg,
             }),
-            {} as Record<string, Element[]>,
+            {} as Record<string, IndicatorIndexElement[]>,
           ),
           ...memo,
         };
-      }, {} as Record<string, Record<string, Element[]>>);
+      }, {} as Record<string, Record<string, IndicatorIndexElement[]>>);
 
       return {
         id: spec.display,

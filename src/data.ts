@@ -8,9 +8,21 @@ import {
   CompanyIndex,
   CompanyKind,
   CompanyRank,
+  Element,
   Indicator,
-  IndicatorIndex,
+  IndicatorAverages,
+  IndicatorCompanyScore,
+  IndicatorDetails,
+  IndicatorElements,
+  Service,
 } from "./types";
+
+const loadHtml = (file: string): (() => Promise<string>) => async (): Promise<
+  string
+> => {
+  const data = await fsP.readFile(path.join(process.cwd(), file));
+  return data.toString();
+};
 
 const loadJson = <T extends unknown>(
   file: string,
@@ -37,23 +49,15 @@ export const loadJsonDir = <T extends unknown>(
 
 export const allCompanies = loadJson<Company[]>("data/companies.json");
 export const allIndicators = loadJson<Indicator[]>("data/indicators.json");
+export const allElements = loadJson<Element[]>("data/elements.json");
 
 export const companyIndices = loadJsonDir<CompanyIndex>(
   "data/companies",
   "scores",
 );
-export const indicatorIndices = loadJsonDir<IndicatorIndex>(
-  "data/indicators",
-  "scores",
-);
-export const companyDetails = loadJsonDir<CompanyDetails>(
-  "data/companies",
-  "details",
-);
 
 /*
- * Load the company details. This is a dummy right now. It needs to be
- * seen how we can load those. Ideally I fetch them directly from Wordpress.
+ * Load the company details.
  */
 export const companyData = async (
   companyId: string,
@@ -75,17 +79,110 @@ export const companyData = async (
 };
 
 /*
+ * Load the company services.
+ */
+export const companyServices = async (
+  companyId: string,
+): Promise<Service[]> => {
+  const companyDir = path.join("data/companies", companyId);
+
+  return loadJson<Service[]>(path.join(companyDir, "services.json"))().catch(
+    () => {
+      throw new Error(`Couldn't extract company services for "${companyId}."`);
+    },
+  );
+};
+
+/*
  * Load the indicator details.
  */
-export const indicatorData = async (
+export const indicatorDetails = async (
   indicatorId: string,
-): Promise<IndicatorIndex> => {
-  const indicatorDir = path.join("data/indicators", indicatorId);
+): Promise<IndicatorDetails> => {
+  const indicatorDir = path.join(
+    "data/indicators",
+    indicatorId,
+    "details.json",
+  );
 
-  return loadJson<IndicatorIndex>(
-    path.join(indicatorDir, "scores.json"),
-  )().catch(() => {
-    throw new Error(`Couldn't extract indicator index for "${indicatorId}".`);
+  return loadJson<IndicatorDetails>(indicatorDir)().catch(() => {
+    throw new Error(`Couldn't extract indicator details for "${indicatorId}".`);
+  });
+};
+
+/*
+ * Load the companies for a single indicator.
+ */
+export const indicatorCompanies = async (
+  indicatorId: string,
+): Promise<Company[]> => {
+  const indicatorDir = path.join(
+    "data/indicators",
+    indicatorId,
+    "companies.json",
+  );
+
+  return loadJson<Company[]>(indicatorDir)().catch(() => {
+    throw new Error(
+      `Couldn't extract indicator companies for "${indicatorId}".`,
+    );
+  });
+};
+
+/*
+ * Load the companies for a single indicator.
+ */
+export const indicatorScores = async (
+  indicatorId: string,
+): Promise<IndicatorCompanyScore[]> => {
+  const indicatorDir = path.join(
+    "data/indicators",
+    indicatorId,
+    "company-scores.json",
+  );
+
+  return loadJson<IndicatorCompanyScore[]>(indicatorDir)().catch(() => {
+    throw new Error(
+      `Couldn't extract indicator company score for "${indicatorId}".`,
+    );
+  });
+};
+
+/*
+ * Load the elements data for a single indicator.
+ */
+export const indicatorElements = async (
+  indicatorId: string,
+): Promise<IndicatorElements> => {
+  const indicatorDir = path.join(
+    "data/indicators",
+    indicatorId,
+    "elements.json",
+  );
+
+  return loadJson<IndicatorElements>(indicatorDir)().catch(() => {
+    throw new Error(
+      `Couldn't extract indicator elements for "${indicatorId}".`,
+    );
+  });
+};
+
+/*
+ * Load the companies for a single indicator.
+ */
+export const indicatorAverages = async (
+  indicatorId: string,
+): Promise<IndicatorAverages> => {
+  const indicatorDir = path.join(
+    "data/indicators",
+    indicatorId,
+    "averages.json",
+  );
+
+  return loadJson<IndicatorAverages>(indicatorDir)().catch(() => {
+    throw new Error(
+      `Couldn't extract indicator averages for "${indicatorId}".`,
+    );
   });
 };
 
@@ -97,3 +194,10 @@ export const companyRankingData = async (
 ): Promise<CompanyRank[]> => {
   return loadJson<CompanyRank[]>(`data/ranking-${companyKind}.json`)();
 };
+
+/*
+ * Load the policy recommendations HTML.
+ */
+export const policyRecommendations = loadHtml(
+  "data/policy-recommendations.html",
+);

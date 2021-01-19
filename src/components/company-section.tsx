@@ -8,9 +8,15 @@ interface CompanySectionProps {
   category: IndicatorCategory;
   text: string;
   indicators: IndicatorNested[];
+  onClick: (id: string) => void;
 }
 
-const CompanySection = ({category, text, indicators}: CompanySectionProps) => {
+const CompanySection = ({
+  category,
+  text,
+  indicators,
+  onClick,
+}: CompanySectionProps) => {
   // eslint-disable-next-line unicorn/no-null
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -25,7 +31,7 @@ const CompanySection = ({category, text, indicators}: CompanySectionProps) => {
     const resize = () => {
       if (!chartRef?.current?.offsetWidth) return;
       const width = chartRef.current.offsetWidth;
-      setChartWidth(width);
+      setChartWidth(width < 0 ? 0 : width);
     };
 
     window.addEventListener("resize", resize);
@@ -56,7 +62,7 @@ const CompanySection = ({category, text, indicators}: CompanySectionProps) => {
 
   return (
     <section className="mt-6 pb-6 border-t border-disabled-dark m-2">
-      <div className="flex flex-col md:flex-row mt-8 md:mt-16 font-circular text-sm">
+      <div className="flex flex-col md:flex-row mt-8 md:mt-16">
         <div className="md:w-4/6 md:mr-3">
           <div className="flex flex-col justify-end mb-12 md:h-16">
             <div className="font-circular text-md text-prissian">Category</div>
@@ -71,7 +77,11 @@ const CompanySection = ({category, text, indicators}: CompanySectionProps) => {
             <h3 className="text-lg font-circular">Indicators</h3>
           </div>
 
-          <CompanyIndicatorChart indicators={indicators} width={chartWidth} />
+          <CompanyIndicatorChart
+            indicators={indicators}
+            width={chartWidth}
+            onClick={onClick}
+          />
         </div>
       </div>
     </section>

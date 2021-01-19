@@ -34,13 +34,17 @@ export type CompanyDetails = {
 export type CompanyKind = "telecom" | "internet";
 
 export type Company = {
+  // The slug of the company name, e.g. AmericaMovil.
   id: string;
+  // The display name of the company, e.g. América Móvil.
   name: string;
   kind: CompanyKind;
 };
 
 export type Indicator = {
+  // The full length name of the indicator, e.g. G01.
   id: string;
+  // The display name of the indicator, e.g. G1.
   name: string;
   category: IndicatorCategory;
   isParent: boolean;
@@ -48,6 +52,7 @@ export type Indicator = {
   label: string;
   description: string;
   guidance: string;
+  exclude?: CompanyKind;
 };
 
 export type Scores = Record<IndicatorCategory | "total", number>;
@@ -66,6 +71,27 @@ export type CompanyRank = {
   companyPretty: string;
   score: number;
   kind: CompanyKind;
+};
+
+export type ServiceKind =
+  | "Group"
+  | "OpCom"
+  | "broadband"
+  | "cloud"
+  | "eCommerce"
+  | "email"
+  | "messagingVoip"
+  | "mobile"
+  | "mobileEcosystem"
+  | "pda"
+  | "photoVideo"
+  | "search"
+  | "socialNetworkBlogs";
+
+export type Service = {
+  id: string;
+  name: string;
+  kind: ServiceKind;
 };
 
 export type CompanyIndex = {
@@ -99,6 +125,52 @@ export type ElementValue =
 // yes
 
 export type Element = {
+  id: string;
+  name: string;
+  position: number;
+  category: IndicatorCategory;
+  indicatorId: string;
+  description: string;
+  isTelecom: boolean;
+  isPlatform: boolean;
+};
+
+export type IndicatorCompanyScore = {
+  id: string;
+  kind: CompanyKind;
+  score: IndicatorScore;
+};
+
+export type IndicatorElement = {
+  id: string;
+  name: string;
+  position: number;
+  score: IndicatorScore;
+  value: ElementValue;
+};
+
+// A record of companies containing mapping from service to indicator elements.
+export type IndicatorElements = Record<
+  string,
+  Record<string, IndicatorElement[]>
+>;
+
+export type IndicatorAverage = Record<string, IndicatorScore>;
+
+export type IndicatorAverages = Record<string, IndicatorAverage>;
+
+export type IndicatorDetails = {
+  id: string;
+  name: string;
+  category: IndicatorCategory;
+  isParent: boolean;
+  hasParent: boolean;
+  label: string;
+  description: string;
+  guidance: string;
+};
+
+export type IndicatorIndexElement = {
   element: string;
   elementNr: number;
   category: IndicatorCategory;
@@ -124,7 +196,7 @@ export type IndicatorIndex = {
   services: Record<string, string[]>;
   scores: Record<string, IndicatorScore>;
   averages: Record<string, Record<string, IndicatorScore>>;
-  elements: Record<string, Record<string, Element[]>>;
+  elements: Record<string, Record<string, IndicatorIndexElement[]>>;
 };
 
 export type CsvRecord = Record<string, string>;

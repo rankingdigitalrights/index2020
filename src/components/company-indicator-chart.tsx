@@ -9,6 +9,7 @@ import PercentageBar from "./percentage-bar";
 
 interface CompanyIndicatorChartProps {
   indicators: IndicatorNested[];
+  onClick: (id: string) => void;
   width?: number;
 }
 
@@ -16,6 +17,7 @@ type CollapseableIndicator = Map<string, boolean>;
 
 const CompanyIndicatorChart = ({
   indicators,
+  onClick,
   width = 250,
 }: CompanyIndicatorChartProps) => {
   const [collapsedIndicators, setCollapsedIndicators] = useState<
@@ -27,6 +29,9 @@ const CompanyIndicatorChart = ({
       new Map(),
     ),
   );
+  const [highlightedIndicator, setHighlightedIndicator] = useState<
+    string | undefined
+  >();
 
   const handleCollapse = (indicator: string) => {
     setCollapsedIndicators(
@@ -36,88 +41,145 @@ const CompanyIndicatorChart = ({
     );
   };
 
+  // FIXME: I make sure that I don't attempt to render rects that have a
+  // negative width. There might be a nicer way to make sure of this.
+  const chartWidth = width - 40 < 0 ? 0 : width - 40;
+
   return (
     <div>
       {indicators.map(
         ({indicator, display, label, category, score, familyMembers}, idx) => {
+          const isHighlightedIndicator = indicator === highlightedIndicator;
           const hasCollapse = collapsedIndicators.has(indicator);
           const isOpen =
             (hasCollapse && collapsedIndicators.get(indicator)) || false;
-          const indicatorPretty = `${display} ${label}`;
+          const indicatorPretty = `${display}. ${label}`;
 
-          const className = c("flex justify-between items-center", {
-            "cursor-pointer": hasCollapse,
-            "cursor-text": !hasCollapse,
-          });
-
-          const classNameBar = {
+          const className = {
             "text-cat-governance": category === "governance",
             "text-cat-freedom": category === "freedom",
             "text-cat-privacy": category === "privacy",
             "text-cat-negative": category === undefined,
           };
 
+          const highlightClassName = "text-prissian";
+
+          const classNameBarRow =
+            "flex items-center justify-between font-circular m-0.5 text-xs";
+
           return (
             <div
               key={`company-indicator-chart-${indicator}`}
               className={c("flex flex-col", {"mt-2": idx > 0})}
+              onMouseEnter={() => setHighlightedIndicator(indicator)}
+              onMouseLeave={() => setHighlightedIndicator(undefined)}
             >
               <button
-                className={className}
+                className="flex justify-between items-center cursor-pointer"
                 onClick={
-                  hasCollapse ? () => handleCollapse(indicator) : () => {}
+                  hasCollapse
+                    ? () => handleCollapse(indicator)
+                    : () => onClick(display)
                 }
               >
-                <span className="text-left text-xs font-circular">
-                  {indicatorPretty}
+                <span className="flex justify-between items-center text-left text-xs font-circular w-11/12">
+                  <span>{indicatorPretty}</span>
+                  {hasCollapse && isOpen && <ChevronUp className="ml-2 mr-4" />}
+                  {hasCollapse && !isOpen && (
+                    <ChevronDown className="ml-2 mr-4" />
+                  )}
                 </span>
-
-                {hasCollapse && isOpen && <ChevronUp className="ml-2" />}
-                {hasCollapse && !isOpen && <ChevronDown className="ml-2" />}
               </button>
 
-              <svg
-                version="1"
-                xmlns="http://www.w3.org/2000/svg"
-                width="100%"
-                height={10}
-                transform="translate(0, 0)"
-              >
-                <PercentageBar
-                  value={mapScore(score)}
-                  width={width}
-                  height={9}
-                  className={classNameBar}
-                />
-              </svg>
+              <div className={classNameBarRow}>
+                <div className="w-11/12">
+                  <svg
+                    version="1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="100%"
+                    height={10}
+                    transform="translate(0, 0)"
+                  >
+                    <PercentageBar
+                      value={mapScore(score)}
+                      width={chartWidth}
+                      height={9}
+                      className={
+                        isHighlightedIndicator ? highlightClassName : className
+                      }
+                    />
+                  </svg>
+                </div>
+
+                <div
+                  className={c(
+                    "ml-2",
+                    isHighlightedIndicator ? highlightClassName : undefined,
+                  )}
+                >
+                  <span>
+                    {score}
+                    {score === "NA" ? "" : "%"}
+                  </span>
+                </div>
+              </div>
 
               {isOpen &&
                 familyMembers.map((m) => {
-                  const mIndicatorPretty = `${m.display} ${m.label}`;
+                  const mChartWidth =
+                    chartWidth - 1 < 0 ? chartWidth : chartWidth - 8;
+                  const mIndicatorPretty = `${m.display}. ${m.label}`;
 
                   return (
                     <div
                       key={`company-indicator-chart-${m.indicator}`}
                       className="pl-2 flex flex-col mt-2"
                     >
-                      <span className="text-left text-xs font-circular">
-                        {mIndicatorPretty}
-                      </span>
-
-                      <svg
-                        version="1"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width={width - 10}
-                        height={10}
-                        transform="translate(0, 0)"
+                      <button
+                        className="flex justify-between cursor-pointer"
+                        onClick={() => onClick(m.display)}
                       >
-                        <PercentageBar
-                          value={mapScore(m.score)}
-                          width={width - 10}
-                          height={9}
-                          className={classNameBar}
-                        />
-                      </svg>
+                        <span className="text-left text-xs font-circular w-11/12">
+                          {mIndicatorPretty}
+                        </span>
+                      </button>
+
+                      <div className={classNameBarRow}>
+                        <div className="w-11/12">
+                          <svg
+                            version="1"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width={mChartWidth}
+                            height={10}
+                            transform="translate(0, 0)"
+                          >
+                            <PercentageBar
+                              value={mapScore(m.score)}
+                              width={mChartWidth}
+                              height={9}
+                              className={
+                                isHighlightedIndicator
+                                  ? highlightClassName
+                                  : className
+                              }
+                            />
+                          </svg>
+                        </div>
+
+                        <div
+                          className={c(
+                            "ml-2",
+                            isHighlightedIndicator
+                              ? highlightClassName
+                              : undefined,
+                          )}
+                        >
+                          <span>
+                            {m.score}
+                            {score === "NA" ? "" : "%"}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}

@@ -1,4 +1,11 @@
-import {ElementValue, IndicatorCategory, IndicatorScore, NA} from "./types";
+import {
+  CompanyKind,
+  ElementValue,
+  IndicatorCategory,
+  IndicatorScore,
+  NA,
+  ServiceKind,
+} from "./types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const memoize = <T extends (...args: any[]) => any>(
@@ -85,6 +92,21 @@ export const mapCategory = (value: string): IndicatorCategory => {
   }
 };
 
+const telecomCompanyKinds = new Set(["telcos", "telecom"]);
+const platformCompanyKinds = new Set(["platforms", "internet"]);
+
+export const mapCompanyKindOrNil = (value: string): CompanyKind | void => {
+  if (telecomCompanyKinds.has(value)) return "telecom";
+  if (platformCompanyKinds.has(value)) return "internet";
+  return undefined;
+};
+
+export const mapCompanyKind = (value: string): CompanyKind => {
+  if (telecomCompanyKinds.has(value)) return "telecom";
+  if (platformCompanyKinds.has(value)) return "internet";
+  return unreachable(`Failed to map ${value} to a company kind`);
+};
+
 export const mapElementValue = (value: string): ElementValue => {
   switch (value) {
     case "NA":
@@ -130,6 +152,29 @@ export const mapScore = (score: IndicatorScore): number => {
   return isNA(score) ? 0 : score;
 };
 
+export const mapServiceKind = (value: string): ServiceKind => {
+  if (
+    [
+      "Group",
+      "OpCom",
+      "broadband",
+      "cloud",
+      "eCommerce",
+      "email",
+      "messagingVoip",
+      "mobile",
+      "mobileEcosystem",
+      "pda",
+      "photoVideo",
+      "search",
+      "socialNetworkBlogs",
+    ].includes(value)
+  )
+    return value as ServiceKind;
+
+  return unreachable(`${value} could not be mapped to a valid service kind.`);
+};
+
 export const enumerate = (value: string | number): string => {
   switch (value) {
     case "1":
@@ -144,4 +189,48 @@ export const enumerate = (value: string | number): string => {
     default:
       return `${value}th`;
   }
+};
+
+export const isValidService = (
+  serviceId: string,
+  indicatorId: string,
+  companyId: string,
+  companyKind: CompanyKind,
+): boolean => {
+  // Indicators G1 and G5 only have elements of Group and OpCom (Company), with
+  // the exception of AT&T and digital platforms, which only have Group.
+  if (["G01", "G05"].includes(indicatorId)) {
+    if (serviceId === "Group") return true;
+    if (
+      serviceId === "OpCom" &&
+      companyKind === "telecom" &&
+      companyId !== "ATT"
+    )
+      return true;
+
+    // All other services are skipped.
+    return false;
+  }
+
+  // Indicators G2, G3 and G4x have services and Group and OpCom (Full) with the
+  // exception of AT&T digital platforms.
+  if (
+    indicatorId.startsWith("G02") ||
+    indicatorId.startsWith("G03") ||
+    indicatorId.startsWith("G04")
+  ) {
+    if (serviceId !== "OpCom") return true;
+    if (
+      serviceId === "OpCom" &&
+      companyId !== "ATT" &&
+      companyKind === "telecom"
+    )
+      return true;
+  }
+
+  // All F and P indicators, and G6x (the rest) only have service elements
+  // (Services).
+  if (!["OpCom", "Group"].includes(serviceId)) return true;
+
+  return false;
 };
