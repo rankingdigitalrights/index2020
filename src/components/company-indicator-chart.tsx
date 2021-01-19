@@ -3,6 +3,7 @@ import React, {useState} from "react";
 
 import ChevronDown from "../../static/chevron-down.svg";
 import ChevronUp from "../../static/chevron-up.svg";
+import {useChartResize} from "../hooks";
 import {IndicatorNested} from "../types";
 import {mapScore} from "../utils";
 import PercentageBar from "./percentage-bar";
@@ -10,7 +11,6 @@ import PercentageBar from "./percentage-bar";
 interface CompanyIndicatorChartProps {
   indicators: IndicatorNested[];
   onClick: (id: string) => void;
-  width?: number;
 }
 
 type CollapseableIndicator = Map<string, boolean>;
@@ -18,8 +18,9 @@ type CollapseableIndicator = Map<string, boolean>;
 const CompanyIndicatorChart = ({
   indicators,
   onClick,
-  width = 250,
 }: CompanyIndicatorChartProps) => {
+  const [chartRef, divWidth] = useChartResize();
+
   const [collapsedIndicators, setCollapsedIndicators] = useState<
     CollapseableIndicator
   >(
@@ -41,12 +42,10 @@ const CompanyIndicatorChart = ({
     );
   };
 
-  // FIXME: I make sure that I don't attempt to render rects that have a
-  // negative width. There might be a nicer way to make sure of this.
-  const chartWidth = width - 40 < 0 ? 0 : width - 40;
+  const chartWidth = divWidth < 0 ? 0 : divWidth - 52;
 
   return (
-    <div>
+    <div ref={chartRef}>
       {indicators.map(
         ({indicator, display, label, category, score, familyMembers}, idx) => {
           const isHighlightedIndicator = indicator === highlightedIndicator;
@@ -127,7 +126,7 @@ const CompanyIndicatorChart = ({
               {isOpen &&
                 familyMembers.map((m) => {
                   const mChartWidth =
-                    chartWidth - 1 < 0 ? chartWidth : chartWidth - 8;
+                    chartWidth - 8 < 0 ? chartWidth : chartWidth - 8;
                   const mIndicatorPretty = `${m.display}. ${m.label}`;
 
                   return (

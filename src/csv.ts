@@ -16,6 +16,7 @@ import {
   IndicatorAverage,
   IndicatorAverages,
   IndicatorCategory,
+  IndicatorCategoryExt,
   IndicatorCompanyScore,
   IndicatorDetails,
   IndicatorElement,
@@ -138,6 +139,14 @@ type CsvElementSpec = {
 type CsvIndicatorExclude = {
   indicatorId: string;
   exclude: CompanyKind;
+};
+
+type CsvCompanyRank = {
+  company: string;
+  rank: number;
+  governanceRank: number;
+  freedomRank: number;
+  privacyRank: number;
 };
 
 /*
@@ -350,6 +359,16 @@ const loadIndicatorExcludesCsv = loadCsv<CsvIndicatorExclude>((record) => ({
   exclude: mapCompanyKind(record.exclude),
 }));
 
+/*
+ * Load the rankings for each company.
+ */
+export const loadcompanyRanksCsv = loadCsv<CsvCompanyRank>((record) => ({
+  company: record.Company,
+  rank: Number.parseInt(record.Rank, 10),
+  governanceRank: Number.parseInt(record.GovernanceRank, 10),
+  freedomRank: Number.parseInt(record.FreedomRank, 10),
+  privacyRank: Number.parseInt(record.PrivacyRank, 10),
+}));
 /*
  * Generate a complete list of all available companies.
  */
@@ -654,24 +673,21 @@ export const companyIndices = memoizeAsync(
       csvIndicators,
       csvCompanySpecs,
       csvIndicatorSpecs,
+      csvCompanyRanks,
     ] = await Promise.all([
       loadTotalsCsv("csv/2020-totals.csv"),
       loadCategoriesCsv("csv/2020-categories.csv"),
       loadIndicatorsCsv("csv/2020-indicators.csv"),
       loadCompanySpecsCsv("csv/2020-company-specs.csv"),
       loadIndicatorSpecsCsv("csv/2020-indicator-specs.csv"),
+      loadcompanyRanksCsv("csv/2020-rankings.csv"),
     ]);
-
-    // We increment the rank counters further below to set a rank based on
-    // the company kind.
-    let telecomRank = 0;
-    let internetRank = 0;
 
     return (
       csvTotals
         .filter((total) => total.score && indexYears.has(total.index))
         .map((total) => {
-          const companySpec =
+          const spec =
             csvCompanySpecs.find((r) => r.company === total.company) ||
             unreachable(`Company ${total.company} not found in specs.`);
 
@@ -718,12 +734,16 @@ export const companyIndices = memoizeAsync(
             csvIndicatorSpecs,
           );
 
+          const {rank} = csvCompanyRanks.find(
+            (companyRank) => companyRank.company === spec.company,
+          ) || {rank: -1};
+
           return {
-            id: companySpec.company,
+            id: spec.company,
             index: total.index,
-            companyPretty: companySpec.companyPretty,
-            rank: -1, // We set the real rank further below
-            kind: companySpec.kind,
+            companyPretty: spec.companyPretty,
+            kind: spec.kind,
+            rank,
             scores,
             indicators: {
               governance: governanceIndicators,
@@ -735,24 +755,9 @@ export const companyIndices = memoizeAsync(
         // Set the real rank of the company after we sorted the
         // companies by score.
         .sort((a, b) => {
-          if (a.scores.total < b.scores.total) return 1;
-          if (a.scores.total > b.scores.total) return -1;
+          if (a.rank < b.rank) return 1;
+          if (a.rank > b.rank) return -1;
           return 0;
-        })
-        .map((company) => {
-          switch (company.kind) {
-            case "telecom": {
-              telecomRank += 1;
-              return Object.assign(company, {rank: telecomRank});
-            }
-            case "internet": {
-              internetRank += 1;
-              return Object.assign(company, {rank: internetRank});
-            }
-            default: {
-              return unreachable(`No suitable rank found for ${company.id}`);
-            }
-          }
         })
     );
   },
@@ -945,19 +950,72 @@ export const indicatorIndices = memoizeAsync(
   },
 );
 
+/*
+ * Generate the sorted list of company rankings by company kind and indicator
+ * category.
+ */
 export const companyRanking = async (
   companyKind: CompanyKind,
+  category: IndicatorCategoryExt,
 ): Promise<CompanyRank[]> => {
-  const index = await companyIndices();
+  const [companyData, csvCompanyRanks] = await Promise.all([
+    companyIndices(),
+    loadcompanyRanksCsv("csv/2020-rankings.csv"),
+  ]);
 
-  return index
-    .filter(({kind}) => kind === companyKind)
-    .map(({id, companyPretty, kind, scores}) => {
-      return {id, companyPretty, kind, score: scores.total};
+  return csvCompanyRanks
+    .map((row) => {
+      const {id, companyPretty, kind, scores} =
+        companyData.find((r) => r.id === row.company) ||
+        unreachable(`Company ${row.company} not found in company specs.`);
+
+      let rank = -1;
+      let score = -1;
+
+      switch (category) {
+        case "total": {
+          rank = row.rank;
+          score = scores.total;
+          break;
+        }
+        case "governance": {
+          rank = row.governanceRank;
+          score = scores.governance;
+          break;
+        }
+        case "freedom": {
+          rank = row.freedomRank;
+          score = scores.freedom;
+          break;
+        }
+        case "privacy": {
+          rank = row.privacyRank;
+          score = scores.privacy;
+          break;
+        }
+        default:
+          return unreachable(`Category ${category} is unmappable.`);
+      }
+
+      return {
+        id,
+        companyPretty,
+        score,
+        rank,
+        kind,
+        category,
+      };
     })
+    .filter(({kind}) => kind === companyKind)
     .sort((a, b) => {
-      if (a.score < b.score) return 1;
-      if (a.score > b.score) return -1;
+      // First we sort the ranking by the actual rank.
+      if (a.rank < b.rank) return -1;
+      if (a.rank > b.rank) return 1;
+
+      // If two companies have the same rank we sort alphabetically.
+      if (a.companyPretty < b.companyPretty) return -1;
+      if (a.companyPretty > b.companyPretty) return 1;
+
       return 0;
     });
 };
