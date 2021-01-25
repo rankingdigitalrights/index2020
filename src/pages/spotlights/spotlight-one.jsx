@@ -1,5 +1,5 @@
 /* eslint no-param-reassign: off */
-import React, {Component, useEffect, useMemo, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import scrollama from "scrollama";
 
 import story from "../../../data/spotlights/spotlight-1.json";
@@ -18,29 +18,6 @@ const chartData = [
   {id: "amazon", name: "Amazon", value: 67},
 ];
 
-// TODO: move into standalone Component
-class RawSVG extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      name: 'svg-1'
-    };
-  }
-
-  render() {
-    return (
-      <figure>
-          {/* <object id="svgObject" data={this.props.data} type="image/svg+xml" {...this.props}>
-                  <em>Your browser doesn't support SVG</em>
-                  <img src="fallback.png" alt="Fallback PNG" />
-          </object> */}
-        <SvgDummy />
-        <figcaption>Caption: Dummy SVG</figcaption>
-      </figure>
-    );
-  }
-}
-
 // TODO: Remove (Temp. to make dev easier)
 const para1 = (
   <section className="max-w-6xl">
@@ -53,8 +30,7 @@ const para1 = (
       starboard grog black jack gangway rutters.
     </p>
 
-    {/* <SvgDummy /> */}
-    <RawSVG />
+    <SvgDummy />
 
     <p>
       Deadlights jack lad schooner scallywag dance the hempen jig carouser
