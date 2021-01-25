@@ -32,7 +32,6 @@ const handleStepEnter = (figure, steps, {index, direction, element}) => {
 };
 
 const handleStepExit = (figure, steps, {index, direction}) => {
-  // console.log("Generic handleStepExit");
   if (
     (index === 0 && direction === "up") ||
     (index === figure.maxStep && direction === "down")
@@ -58,15 +57,13 @@ export const setupSpotlight = (
     .setup({
       step: stepSelector,
       offset: 0.8,
-      debug: true,
+      debug: false,
     })
     .onStepEnter((...args) => {
       handleStepEnter(figure, steps, ...args);
       localOnStepEnter(...args);
     })
     .onStepExit((...args) => {
-      // console.log("args:");
-      // console.log(args);
       handleStepExit(figure, steps, ...args);
       localOnStepExit(...args);
     });

@@ -1,5 +1,5 @@
 /* eslint no-param-reassign: off */
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {Component, useEffect, useMemo, useRef, useState} from "react";
 import scrollama from "scrollama";
 
 import story from "../../../data/spotlights/spotlight-1.json";
@@ -8,6 +8,7 @@ import Layout from "../../components/layout-spotlights";
 import SpotlightChart from "../../components/spotlight-chart";
 import ScrollySteps from "../../components/spotlight-steps";
 import MyImage from "../../images/spotlights/datawrapper-map-dummy.png";
+import SvgDummy from "../../images/svg/q1-governance-export.svg";
 import {setupSpotlight} from "../../spotlights";
 
 const chartData = [
@@ -16,6 +17,29 @@ const chartData = [
   {id: "apple", name: "Apple", value: 10},
   {id: "amazon", name: "Amazon", value: 67},
 ];
+
+// TODO: move into standalone Component
+class RawSVG extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      name: 'svg-1'
+    };
+  }
+
+  render() {
+    return (
+      <figure>
+          {/* <object id="svgObject" data={this.props.data} type="image/svg+xml" {...this.props}>
+                  <em>Your browser doesn't support SVG</em>
+                  <img src="fallback.png" alt="Fallback PNG" />
+          </object> */}
+        <SvgDummy />
+        <figcaption>Caption: Dummy SVG</figcaption>
+      </figure>
+    );
+  }
+}
 
 // TODO: Remove (Temp. to make dev easier)
 const para1 = (
@@ -28,6 +52,9 @@ const para1 = (
       yardarm hempen halter furl. Swab barque interloper chantey doubloon
       starboard grog black jack gangway rutters.
     </p>
+
+    {/* <SvgDummy /> */}
+    <RawSVG />
 
     <p>
       Deadlights jack lad schooner scallywag dance the hempen jig carouser
