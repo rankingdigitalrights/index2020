@@ -1,5 +1,6 @@
 /* eslint no-param-reassign: off */
 import React, {useEffect, useMemo, useRef, useState} from "react";
+import {useInView} from "react-intersection-observer";
 import scrollama from "scrollama";
 
 import story from "../../../data/spotlights/spotlight-1.json";
@@ -8,8 +9,65 @@ import Layout from "../../components/layout-spotlights";
 import SpotlightChart from "../../components/spotlight-chart";
 import ScrollySteps from "../../components/spotlight-steps";
 import MyImage from "../../images/spotlights/datawrapper-map-dummy.png";
-import SvgDummy from "../../images/svg/q1-governance-export.svg";
 import {setupSpotlight} from "../../spotlights";
+
+const toggleFade = (inView) => {
+  return inView ? "fade-in" : "fade-out";
+};
+const HeaderInView = () => {
+  const [ioHook, inView, entry] = useInView({
+    /* Optional options */
+    threshold: 0.8,
+  });
+
+  return (
+    <div ref={ioHook}>
+      <h2>{`Header inside viewport ${inView}.`}</h2>
+    </div>
+  );
+};
+
+const FigureObj = (props) => {
+  const [ioHook, inView, entry] = useInView({
+    /* Optional options */
+    threshold: 0.5,
+    triggerOnce: true,
+  });
+  return (
+    <figure
+      ref={ioHook}
+      className={`spot-figure ${toggleFade(inView)}`}
+      style={{width: "100%", height: "auto"}}
+    >
+      <object
+        data={props.src}
+        style={{
+          minWidth: "100%",
+          minHeight: "100%",
+          width: "100%",
+          height: "auto",
+        }}
+        type="image/svg+xml"
+      />
+      <figcaption>{props.caption}</figcaption>
+    </figure>
+  );
+};
+
+const FigureImg = (props) => {
+  const [ioHook, inView, entry] = useInView({
+    /* Optional options */
+    threshold: 0.5,
+    triggerOnce: true,
+  });
+  return (
+    <figure ref={ioHook} className={`spot-figure ${toggleFade(inView)}`}>
+      {/* {children} */}
+      <img src={props.img.type} alt={props.alt} type="image/svg+xml" />
+      <figcaption>{props.caption}</figcaption>
+    </figure>
+  );
+};
 
 const chartData = [
   {id: "twitter", name: "Twitter", value: 37},
@@ -30,7 +88,13 @@ const para1 = (
       starboard grog black jack gangway rutters.
     </p>
 
-    <SvgDummy />
+    <HeaderInView />
+
+    <FigureObj
+      src="/index2020/svg/q1-governance-export.svg"
+      caption="Caption As Props"
+      alt="TODO: Alternative description"
+    />
 
     <p>
       Deadlights jack lad schooner scallywag dance the hempen jig carouser
@@ -39,6 +103,12 @@ const para1 = (
       wherry doubloon chase. Belay yo-ho-ho keelhaul squiffy black spot yardarm
       spyglass sheet transom heave to.
     </p>
+
+    <FigureObj
+      src="/index2020/svg/asia.svg"
+      caption="Caption As Props 2"
+      alt="TODO: Alternative description"
+    />
 
     <p>
       Trysail Sail ho Corsair red ensign hulk smartly boom jib rum gangway. Case
@@ -77,6 +147,12 @@ const para2 = (
 );
 
 const SpotlightOne = () => {
+  const [ioHook, inView, entry] = useInView({
+    /* Optional options */
+    threshold: [0.5],
+    triggerOnce: true,
+  });
+
   // Hook: state + stateMethod
   const [currentStep, setCurrentStep] = useState();
   // "unhook" / make Obj mutable
@@ -122,12 +198,17 @@ const SpotlightOne = () => {
             initialHeight={360}
           />
         </section>
+
         {/* // TODO */}
         {para2}
         <section id="scrolly-1" ref={scrolly1El} className="scrolly">
-          <h2>Scrolly 1</h2>
+          <h2>{`Scrolly 1 ${inView}`}</h2>
 
-          <div id="scrolly-canvas" className="scrolly-canvas">
+          <div
+            ref={ioHook}
+            id="scrolly-canvas"
+            className={`scrolly-canvas ${inView ? "fade-in" : "fade-out"}`}
+          >
             <figure className="scrolly-figure bg-gray-200">
               <p id="scene-counter">Off</p>
               <p id="index-counter">Off</p>
@@ -150,10 +231,16 @@ const SpotlightOne = () => {
             doubloon starboard grog black jack gangway rutters.
           </p>
 
-          <figure>
+          {/* <figure ref={ioHook} className={inView ? "fade-in" : "fade-out"}>
             <img src={MyImage} alt="Some other data stuff" />
-            <figcaption>Caption: Example PNG Image</figcaption>
-          </figure>
+            <figcaption>{`Caption: Example PNG Image`}</figcaption>
+          </figure> */}
+
+          <FigureImg
+            img={<MyImage />}
+            caption="Caption: Example PNG Image"
+            alt="TODO - Caption: Example PNG Image"
+          />
 
           <p>
             Deadlights jack lad schooner scallywag dance the hempen jig carouser
