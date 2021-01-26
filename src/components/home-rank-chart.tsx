@@ -1,4 +1,5 @@
 import c from "clsx";
+import Link from "next/link";
 import React, {useState} from "react";
 
 import {useChartResize} from "../hooks";
@@ -9,16 +10,10 @@ import PercentageBar from "./percentage-bar";
 interface HomeRankChartProps {
   ranking: CompanyRank[];
   category: IndicatorCategoryExt;
-  onClick: (id: string) => void;
   className?: string;
 }
 
-const HomeRankChart = ({
-  ranking,
-  category,
-  onClick,
-  className,
-}: HomeRankChartProps) => {
+const HomeRankChart = ({ranking, category, className}: HomeRankChartProps) => {
   const [chartRef, chartWidth] = useChartResize();
 
   const [highlightedCompany, setHighlightedCompany] = useState<
@@ -82,20 +77,21 @@ const HomeRankChart = ({
           >
             <div className="flex-none w-3 mr-2">&nbsp;</div>
 
-            <button
-              className={c(
-                "flex-none font-circular w-28 select-none text-left whitespace-nowrap",
-                highlightedClassName,
-              )}
-              onClick={() => onClick(id)}
-            >
-              {companyPretty}
-            </button>
+            <Link passHref href={`/companies/${id}`}>
+              <a
+                className={c(
+                  "flex-none font-circular text-black w-28 select-none whitespace-nowrap",
+                  highlightedClassName,
+                )}
+              >
+                {companyPretty}
+              </a>
+            </Link>
 
             <div className="flex-none w-8 flex justify-center">
               <div
                 className={c(
-                  "rounded-full h-4 w-4 text-white flex items-center justify-center",
+                  "rounded-full h-5 w-5 text-white flex items-center justify-center",
                   highlightedRankClassName,
                 )}
               >
