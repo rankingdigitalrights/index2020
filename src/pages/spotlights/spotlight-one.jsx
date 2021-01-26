@@ -14,9 +14,17 @@ import {setupSpotlight} from "../../spotlights";
 const toggleFade = (inView) => {
   return inView ? "fade-in" : "fade-out";
 };
+
+const updateSVG = ({objId, query, attr, value}) => {
+  const Obj = document.querySelector(`#${objId}`).contentDocument;
+  [...Obj.querySelectorAll(query)].map((item) =>
+    item.setAttribute(attr, value),
+  );
+};
+
 const HeaderInView = () => {
   const [ioHook, inView] = useInView({
-    /* Optional options */
+    // [ref, inView, entry]
     threshold: 0.8,
   });
 
@@ -27,9 +35,8 @@ const HeaderInView = () => {
   );
 };
 
-const FigureObj = ({src, alt, caption}) => {
+const FigureObj = ({src, alt, id, caption}) => {
   const [ioHook, inView] = useInView({
-    /* Optional options */
     threshold: 0.5,
     triggerOnce: true,
   });
@@ -37,6 +44,7 @@ const FigureObj = ({src, alt, caption}) => {
   return (
     <figure ref={ioHook} className={`spot-figure ${toggleFade(inView)}`}>
       <object
+        id={id}
         data={src}
         aria-label={alt}
         style={{
@@ -46,22 +54,39 @@ const FigureObj = ({src, alt, caption}) => {
           height: "auto",
         }}
         type="image/svg+xml"
+        onMouseEnter={() =>
+          updateSVG({
+            objId: id,
+            query: "g#Basemap path",
+            attr: "fill",
+            value: "green",
+          })
+        }
+        onMouseLeave={() =>
+          updateSVG({
+            objId: id,
+            query: "g#Basemap path",
+            attr: "fill",
+            value: "rgb(214, 201, 201)",
+          })
+        }
       />
       <figcaption>{caption}</figcaption>
     </figure>
   );
 };
 
-const FigureImg = ({img, alt, caption}) => {
+const FigureImg = ({img, id, alt, caption}) => {
   const [ioHook, inView] = useInView({
-    // [ref, inView, entry]
-    /* Optional options */
     threshold: 0.5,
     triggerOnce: true,
   });
   return (
-    <figure ref={ioHook} className={`spot-figure ${toggleFade(inView)}`}>
-      {/* {children} */}
+    <figure
+      id={id}
+      ref={ioHook}
+      className={`spot-figure ${toggleFade(inView)}`}
+    >
       <img src={img.type} alt={alt} type="image/svg+xml" />
       <figcaption>{caption}</figcaption>
     </figure>
@@ -93,6 +118,7 @@ const para1 = (
       src="/index2020/svg/q1-governance-export.svg"
       caption="Caption As Props"
       alt="TODO: Alternative description"
+      id="graph-q1"
     />
 
     <p>
@@ -107,6 +133,7 @@ const para1 = (
       src="/index2020/svg/asia.svg"
       caption="Caption As Props 2"
       alt="TODO: Alternative description"
+      id="map-asia-1"
     />
 
     <p>
@@ -147,7 +174,6 @@ const para2 = (
 
 const SpotlightOne = () => {
   const [ioHook, inView] = useInView({
-    /* Optional options */
     threshold: [0.5],
     triggerOnce: true,
   });
@@ -239,6 +265,7 @@ const SpotlightOne = () => {
             img={<MyImage />}
             caption="Caption: Example PNG Image"
             alt="TODO - Caption: Example PNG Image"
+            id="map-dw-1"
           />
 
           <p>
