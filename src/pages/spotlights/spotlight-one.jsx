@@ -15,7 +15,7 @@ const toggleFade = (inView) => {
   return inView ? "fade-in" : "fade-out";
 };
 const HeaderInView = () => {
-  const [ioHook, inView, entry] = useInView({
+  const [ioHook, inView] = useInView({
     /* Optional options */
     threshold: 0.8,
   });
@@ -27,20 +27,18 @@ const HeaderInView = () => {
   );
 };
 
-const FigureObj = (props) => {
-  const [ioHook, inView, entry] = useInView({
+const FigureObj = ({src, alt, caption}) => {
+  const [ioHook, inView] = useInView({
     /* Optional options */
     threshold: 0.5,
     triggerOnce: true,
   });
+
   return (
-    <figure
-      ref={ioHook}
-      className={`spot-figure ${toggleFade(inView)}`}
-      style={{width: "100%", height: "auto"}}
-    >
+    <figure ref={ioHook} className={`spot-figure ${toggleFade(inView)}`}>
       <object
-        data={props.src}
+        data={src}
+        aria-label={alt}
         style={{
           minWidth: "100%",
           minHeight: "100%",
@@ -49,13 +47,14 @@ const FigureObj = (props) => {
         }}
         type="image/svg+xml"
       />
-      <figcaption>{props.caption}</figcaption>
+      <figcaption>{caption}</figcaption>
     </figure>
   );
 };
 
-const FigureImg = (props) => {
-  const [ioHook, inView, entry] = useInView({
+const FigureImg = ({img, alt, caption}) => {
+  const [ioHook, inView] = useInView({
+    // [ref, inView, entry]
     /* Optional options */
     threshold: 0.5,
     triggerOnce: true,
@@ -63,8 +62,8 @@ const FigureImg = (props) => {
   return (
     <figure ref={ioHook} className={`spot-figure ${toggleFade(inView)}`}>
       {/* {children} */}
-      <img src={props.img.type} alt={props.alt} type="image/svg+xml" />
-      <figcaption>{props.caption}</figcaption>
+      <img src={img.type} alt={alt} type="image/svg+xml" />
+      <figcaption>{caption}</figcaption>
     </figure>
   );
 };
@@ -147,7 +146,7 @@ const para2 = (
 );
 
 const SpotlightOne = () => {
-  const [ioHook, inView, entry] = useInView({
+  const [ioHook, inView] = useInView({
     /* Optional options */
     threshold: [0.5],
     triggerOnce: true,
