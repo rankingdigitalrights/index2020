@@ -234,15 +234,36 @@
     margin: 2rem auto 3rem auto;
   }
 
-  main.spotlight figure img {
-    margin: 1rem auto;
-  }
-
   main.spotlight figure figcaption {
     @apply font-platform;
     text-align: right;
     margin: 1rem auto;
   }
+
+  main.spotlight figure img {
+    margin: 1rem auto;
+  }
+
+  .scrolly-canvas figure.figure-svg {
+    margin: 0 auto;
+    overflow: clip;
+  }
+
+  .scrolly-canvas figure.figure-svg svg {
+    transform: translate(-50%, -50%);
+    top: 50%;
+    position: absolute;
+    min-width: 100%;
+    left: 50%;
+    max-height: 100%;
+  }
+
+  .scrolly-canvas figure figcaption {
+    position: absolute;
+    bottom: 0;
+    right: 1rem;
+  }
+
 
   div.scrolly-canvas {
     @apply sticky w-full m-0 left-0;
@@ -257,10 +278,12 @@
   }
 
   div.scrolly-canvas figure.scrolly-figure {
+    overflow: clip;
     width: 100%;
     height: 100%;
     max-width: unset;
-    margin-bottom: 3rem;
+    margin: 0;
+    /* margin-bottom: 3rem; */
     -webkit-transform: translate3d(0, 0, 0);
     -moz-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
