@@ -22,7 +22,7 @@ const toggleActiveStep = (index, steps) => {
   );
 };
 
-const toggleSVGclass = ({objId, query, toggleClassName}) => {
+export const toggleSVGclass = ({objId, query, toggleClassName}) => {
   console.log(toggleClassName); // TODO
   const Obj = document.querySelector(`#${objId} svg`);
   [...Obj.querySelectorAll(query)].forEach((item) => {
@@ -30,6 +30,9 @@ const toggleSVGclass = ({objId, query, toggleClassName}) => {
     item.classList.toggle("fade-in");
   });
 };
+
+// FIXME: remove!!!
+// window.toggleSVGclass = toggleSVGclass;
 
 const resetScene = (figure) => {
   updateBGColor(figure);
@@ -43,13 +46,6 @@ const handleStepEnter = (figure, steps, {index, direction, element}) => {
   toggleActiveStep(index, steps);
   figure.querySelector("p#scene-counter").textContent = "On";
   figure.querySelector("p#index-counter").textContent = index;
-  if (element.dataset.queries) {
-    toggleSVGclass({
-      objId: "map-asia-1",
-      query: element.dataset.queries,
-      toggleClassName: element.dataset.toggle,
-    });
-  }
 };
 
 const handleStepExit = (figure, steps, {index, direction}) => {
@@ -61,10 +57,19 @@ const handleStepExit = (figure, steps, {index, direction}) => {
   }
 };
 
-export const setupSpotlight = (ref, scroller, stepSelector) => {
+export const setupSpotlight = (
+  ref,
+  scroller,
+  stepSelector,
+  localOnStepEnter = () => {},
+  localOnStepExit = () => {},
+) => {
   const {current: scrolly} = ref;
 
   const figure = scrolly.querySelector("figure.scrolly-figure");
+  // figure can be undefined and therefore we return early. Safeguard.
+  if (!figure) return;
+
   const steps = scrolly.querySelectorAll(".step");
   figure.maxStep = steps.length - 1;
 
@@ -76,9 +81,11 @@ export const setupSpotlight = (ref, scroller, stepSelector) => {
     })
     .onStepEnter((...args) => {
       handleStepEnter(figure, steps, ...args);
+      localOnStepEnter(...args);
     })
     .onStepExit((...args) => {
       handleStepExit(figure, steps, ...args);
+      localOnStepExit(...args);
     });
 
   return () => {

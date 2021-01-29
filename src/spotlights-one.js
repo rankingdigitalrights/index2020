@@ -44,8 +44,8 @@ export const setupSpotlight = (
   ref,
   scroller,
   stepSelector,
-  localOnStepEnter,
-  localOnStepExit,
+  localOnStepEnter = () => {},
+  localOnStepExit = () => {},
 ) => {
   const {current: scrolly} = ref;
 

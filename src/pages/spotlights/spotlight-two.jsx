@@ -1,4 +1,6 @@
 /* eslint no-param-reassign: off */
+import {promises as fsP} from "fs";
+import path from "path";
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {useInView} from "react-intersection-observer";
 import scrollama from "scrollama";
@@ -6,40 +8,16 @@ import scrollama from "scrollama";
 import story from "../../../data/spotlights/spotlight-2.json";
 import Layout from "../../components/layout-spotlights";
 import ScrollySteps from "../../components/spotlight-steps";
+import ScrollyFeature from "../../components/scrolly-feature";
+import SpotlightChart from "../../components/spotlight-chart";
 import MyImage from "../../images/spotlights/datawrapper-map-dummy.png";
-import {setupSpotlight} from "../../spotlights-two";
+import {setupSpotlight, toggleSVGclass} from "../../spotlights-two";
+import FigureSvg from "../../components/figure-svg";
 
 // TODO: refactor into spotlight-components
 
 const toggleFade = (inView) => {
   return inView ? "fade-in" : "fade-out";
-};
-
-const FigureSvg = ({id, alt, src, caption}) => {
-  const [svg, setSvg] = useState(undefined);
-  const [ioHook, inView] = useInView({
-    threshold: 0.5,
-    triggerOnce: false,
-  });
-
-  useEffect(() => {
-    fetch(src)
-      .then((res) => res.text())
-      .then(setSvg)
-      .catch(() => undefined);
-  }, []);
-
-  return (
-    <figure
-      id={id}
-      aria-label={alt}
-      ref={ioHook}
-      className={`figure-svg spot-figure ${toggleFade(inView)}`}
-      dangerouslySetInnerHTML={{
-        __html: [`${svg}<figcaption>${caption}</figcaption>`],
-      }}
-    />
-  );
 };
 
 // const updateSVGattr = ({objId, query, attr, value}) => {
@@ -107,24 +85,66 @@ const InnerCounter = (
   </div>
 );
 
-const SpotlightTwo = () => {
-  const [ioHook, inView] = useInView({
+const chartData = [
+  {id: "twitter", name: "Twitter", value: 37},
+  {id: "ooredo", name: "Ooredo", value: 54},
+  {id: "apple", name: "Apple", value: 10},
+  {id: "amazon", name: "Amazon", value: 67},
+];
+
+export const getStaticProps = async () => {
+  const svg1 = (
+    await fsP.readFile(path.join(process.cwd(), "public/svg/asia.svg"))
+  ).toString();
+  const svg2 = await fsP.readFile(
+    path.join(process.cwd(), "public/svg/q1-governance-export.svg"),
+  );
+
+  return {
+    props: {
+      svg1,
+      svg2: svg2.toString(),
+    },
+  };
+};
+
+const SpotlightTwo = ({svg1, svg2}) => {
+  const [currentStep, setCurrentStep] = useState();
+  const [ioHook2, inView2] = useInView({
     threshold: [0.5],
     triggerOnce: true,
   });
 
   // "unhook" / make Obj mutable
-  const scrolly1El = useRef(undefined);
+  const scrolly2El = useRef(undefined);
+
   // memoize
-  const scroller1 = useMemo(() => scrollama(), []);
+  const scroller2 = useMemo(() => scrollama(), []);
 
   useEffect(() => {
-    const unmount1 = setupSpotlight(scrolly1El, scroller1, "#scrolly-1 .step");
+    // arguments passed as ...args from global Step Handler
+    const localOnStepEnter2 = ({element, index, direction}) => {
+      // Hook step --> state of viz
+      setCurrentStep(element.dataset.step - 1);
+      console.log(`Local Enter 2: ${index} - ${direction}`);
+    };
+
+    const localOnStepExit2 = ({index, direction}) => {
+      console.log(`Local Exit 2: ${index} - ${direction}`);
+    };
+
+    const unmount2 = setupSpotlight(
+      scrolly2El,
+      scroller2,
+      "#scrolly-2 .step",
+      localOnStepEnter2,
+      localOnStepExit2,
+    );
 
     return () => {
-      unmount1();
+      unmount2();
     };
-  }, [scroller1, scrolly1El]);
+  }, [scroller2, scrolly2El]);
 
   return (
     <Layout>
@@ -134,24 +154,79 @@ const SpotlightTwo = () => {
 
         {para2}
 
-        <section id="scrolly-1" ref={scrolly1El} className="scrolly">
-          <h2>{`Scrolly 1 ${inView}`}</h2>
+        <ScrollyFeature
+          id="scrolly-1"
+          story={story}
+          svg={svg1}
+          stepEnter={({element}) => {
+            if (element.dataset.queries) {
+              toggleSVGclass({
+                objId: "map-asia-1",
+                query: element.dataset.queries,
+                toggleClassName: element.dataset.toggle,
+              });
+            }
+          }}
+          stepExit={({index, direction}) => {
+            console.log(`Local Exit 1: ${index} - ${direction}`);
+          }}
+        >
+          <figure className="scrolly-figure bg-gray-200">
+            <FigureSvg
+              className="scrolly-figure bg-gray-200"
+              svg={svg1}
+              caption="Caption As Props 2"
+              alt="TODO: Alternative description"
+              id="map-asia-1"
+            />
+            <div>
+              <p id="scene-counter">Off</p>
+              <p id="index-counter">Off</p>
+            </div>
+          </figure>
+        </ScrollyFeature>
+
+        <ScrollyFeature id="scrolly-xxx" story={story} svg={svg1}>
+          <figure className="scrolly-figure bg-gray-200">
+            <FigureSvg
+              className="scrolly-figure bg-gray-200"
+              svg={svg2}
+              caption="Caption As Props 2"
+              alt="TODO: Alternative description"
+              id="map-asia-1"
+            />
+            <div>
+              <p id="scene-counter">Off</p>
+              <p id="index-counter">Off</p>
+            </div>
+          </figure>
+        </ScrollyFeature>
+
+        <p>xxxx</p>
+
+        <section id="scrolly-2" ref={scrolly2El} className="scrolly">
+          <h2>{`Scrolly 2 ${inView2}`}</h2>
 
           <div
-            ref={ioHook}
+            ref={ioHook2}
             id="scrolly-canvas"
-            className={`scrolly-canvas ${inView ? "fade-in" : "fade-out"}`}
+            className={`scrolly-canvas ${inView2 ? "fade-in" : "fade-out"}`}
           >
+            <p>Boom!</p>
+
             <figure className="scrolly-figure bg-gray-200">
               <FigureSvg
                 className="scrolly-figure bg-gray-200"
-                src="/index2020/svg/asia.svg"
+                svg={svg2}
                 caption="Caption As Props 2"
                 alt="TODO: Alternative description"
                 id="map-asia-1"
               />
               {InnerCounter}
             </figure>
+            <div className="scrolly-chart">
+              <SpotlightChart data={chartData} highlightedBar={currentStep} />
+            </div>
           </div>
 
           <ScrollySteps story={story} />

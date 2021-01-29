@@ -9,6 +9,7 @@ import Layout from "../../components/layout-spotlights";
 import SpotlightChart from "../../components/spotlight-chart";
 import ScrollySteps from "../../components/spotlight-steps";
 import MyImage from "../../images/spotlights/datawrapper-map-dummy.png";
+import MyIcon from "../../images/icons/email.svg";
 import {setupSpotlight} from "../../spotlights-one";
 
 // TODO: refactor into spotlight-components
@@ -55,7 +56,8 @@ const FigureImg = ({img, id, alt, caption}) => {
       ref={ioHook}
       className={`spot-figure ${toggleFade(inView)}`}
     >
-      <img src={img.type} alt={alt} type="image/svg+xml" />
+      <MyImage />
+      <MyIcon alt="XXXX" className="text-cat-freedom stroke-current" />
       <figcaption>{caption}</figcaption>
     </figure>
   );
