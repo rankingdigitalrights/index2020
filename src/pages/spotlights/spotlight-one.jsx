@@ -1,16 +1,18 @@
 /* eslint no-param-reassign: off */
+import {promises as fsP} from "fs";
+import path from "path";
 import React, {useEffect, useMemo, useRef, useState} from "react";
 import {useInView} from "react-intersection-observer";
 import scrollama from "scrollama";
 
-import story from "../../../data/spotlights/spotlight-1.json";
-import Iframe from "../../components/datawrapper";
+import story from "../../../data/spotlights/spotlight-2.json";
 import Layout from "../../components/layout-spotlights";
-import SpotlightChart from "../../components/spotlight-chart";
 import ScrollySteps from "../../components/spotlight-steps";
-// import MyImage from "../../images/spotlights/datawrapper-map-dummy.png";
-import MyIcon from "../../images/icons/email.svg";
-import {setupSpotlight} from "../../spotlights-one";
+import ScrollyFeature from "../../components/scrolly-feature";
+import SpotlightChart from "../../components/spotlight-chart";
+import MyImage from "../../images/spotlights/datawrapper-map-dummy.png";
+import {setupSpotlight, toggleSVGclass} from "../../spotlights-two";
+import FigureSvg from "../../components/figure-svg";
 
 // TODO: refactor into spotlight-components
 
@@ -18,34 +20,21 @@ const toggleFade = (inView) => {
   return inView ? "fade-in" : "fade-out";
 };
 
-const FigureSvg = ({id, alt, src, caption}) => {
-  const [svg, setSvg] = useState(undefined);
-  const [ioHook, inView] = useInView({
-    threshold: 0.5,
-    triggerOnce: false,
-  });
+// const updateSVGattr = ({objId, query, attr, value}) => {
+//   const Obj = document.querySelector(`#${objId}`).contentDocument;
+//   [...Obj.querySelectorAll(query)].map((item) =>
+//     item.setAttribute(attr, value),
+//   );
+// };
 
-  useEffect(() => {
-    fetch(src)
-      .then((res) => res.text())
-      .then(setSvg)
-      .catch(() => undefined);
-  }, []); // [props.src] removed for useOnce
+// const toggleSVGclass = ({objId, query, toggleClassName}) => {
+//   const Obj = document.querySelector(`#${objId}`).contentDocument;
+//   [...Obj.querySelectorAll(query)].map((item) =>
+//     item.classList.toggle(toggleClassName),
+//   );
+// };
 
-  return (
-    <figure
-      id={id}
-      aria-label={alt}
-      ref={ioHook}
-      className={`figure-svg spot-figure ${toggleFade(inView)}`}
-      dangerouslySetInnerHTML={{
-        __html: [`${svg} <figcaption>${caption}</figcaption>`],
-      }}
-    />
-  );
-};
-
-const FigureImg = ({id, alt, caption}) => {
+const FigureImg = ({img, id, alt, caption}) => {
   const [ioHook, inView] = useInView({
     threshold: 0.5,
     triggerOnce: false,
@@ -56,58 +45,12 @@ const FigureImg = ({id, alt, caption}) => {
       ref={ioHook}
       className={`spot-figure ${toggleFade(inView)}`}
     >
-      <MyIcon alt="XXXX" className="text-cat-freedom stroke-current" />
+      <img src={img} alt={alt} />
+      {/* <MyImage /> */}
       <figcaption>{caption}</figcaption>
     </figure>
   );
 };
-
-const chartData = [
-  {id: "twitter", name: "Twitter", value: 37},
-  {id: "ooredo", name: "Ooredo", value: 54},
-  {id: "apple", name: "Apple", value: 10},
-  {id: "amazon", name: "Amazon", value: 67},
-];
-
-// TODO: Remove (Temp. to make dev easier)
-const para1 = (
-  <section className="max-w-6xl">
-    <h2>Intro (Staging Test)</h2>
-    <p>
-      Prow scuttle parrel provost Sail ho shrouds spirits boom mizzenmast
-      yardarm. Pinnace holystone mizzenmast quarter crows nest nipperkin grog
-      yardarm hempen halter furl. Swab barque interloper chantey doubloon
-      starboard grog black jack gangway rutters.
-    </p>
-
-    <FigureSvg
-      src="/index2020/svg/q1-governance-export.svg"
-      caption="Caption As Props"
-      alt="TODO: Alternative description"
-      id="graph-q1"
-    />
-
-    <p>
-      Deadlights jack lad schooner scallywag dance the hempen jig carouser
-      broadside cable strike colors. Bring a spring upon her cable holystone
-      blow the man down spanker Shiver me timbers to go on account lookout
-      wherry doubloon chase. Belay yo-ho-ho keelhaul squiffy black spot yardarm
-      spyglass sheet transom heave to.
-    </p>
-    <FigureSvg
-      src="/index2020/svg/asia.svg"
-      caption="Caption As Props 2"
-      alt="TODO: Alternative description"
-      id="map-asia-1"
-    />
-    <p>
-      Trysail Sail ho Corsair red ensign hulk smartly boom jib rum gangway. Case
-      shot Shiver me timbers gangplank crack Jennys tea cup ballast Blimey lee
-      snow crows nest rutters. Fluke jib scourge of the seven seas boatswain
-      schooner gaff booty Jack Tar transom spirits.
-    </p>
-  </section>
-);
 
 const para2 = (
   <section className="max-w-6xl">
@@ -136,75 +79,155 @@ const para2 = (
   </section>
 );
 
-const SpotlightOne = () => {
-  const [ioHook, inView] = useInView({
+const InnerCounter = (
+  <div>
+    <p id="scene-counter">Off</p>
+    <p id="index-counter">Off</p>
+  </div>
+);
+
+const chartData = [
+  {id: "twitter", name: "Twitter", value: 37},
+  {id: "ooredo", name: "Ooredo", value: 54},
+  {id: "apple", name: "Apple", value: 10},
+  {id: "amazon", name: "Amazon", value: 67},
+];
+
+export const getStaticProps = async () => {
+  const svg1 = (
+    await fsP.readFile(path.join(process.cwd(), "public/svg/asia.svg"))
+  ).toString();
+  const svg2 = await fsP
+    .readFile(path.join(process.cwd(), "public/svg/q1-governance-export.svg"))
+    .toString();
+
+  return {
+    props: {
+      svg1,
+      svg2,
+    },
+  };
+};
+
+const SpotlightTwo = ({svg1, svg2}) => {
+  const [currentStep, setCurrentStep] = useState();
+  const [ioHook2, inView2] = useInView({
     threshold: [0.5],
-    triggerOnce: false,
+    triggerOnce: true,
   });
 
-  // Hook: state + stateMethod
-  const [currentStep, setCurrentStep] = useState();
   // "unhook" / make Obj mutable
-  const scrolly1El = useRef(undefined);
+  const scrolly2El = useRef(undefined);
+
   // memoize
-  const scroller1 = useMemo(() => scrollama(), []);
+  const scroller2 = useMemo(() => scrollama(), []);
 
   useEffect(() => {
     // arguments passed as ...args from global Step Handler
-    const localOnStepEnter = ({element}) => {
+    const localOnStepEnter2 = ({element, index, direction}) => {
       // Hook step --> state of viz
       setCurrentStep(element.dataset.step - 1);
-      // console.log(`Local Enter: ${index} - ${direction}`);
+      console.log(`Local Enter 2: ${index} - ${direction}`);
     };
 
-    const localOnStepExit = () => {
-      // console.log(`Local Exit: ${index} - ${direction}`);
+    const localOnStepExit2 = ({index, direction}) => {
+      console.log(`Local Exit 2: ${index} - ${direction}`);
     };
 
-    const unmount1 = setupSpotlight(
-      scrolly1El,
-      scroller1,
-      "#scrolly-1 .step",
-      localOnStepEnter,
-      localOnStepExit,
+    const unmount2 = setupSpotlight(
+      scrolly2El,
+      scroller2,
+      "#scrolly-2 .step",
+      localOnStepEnter2,
+      localOnStepExit2,
     );
 
     return () => {
-      unmount1();
+      unmount2();
     };
-  }, [scroller1, scrolly1El]);
+  }, [scroller2, scrolly2El]);
 
   return (
     <Layout>
       <main className="container mx-auto spotlight">
         {/* // TODO */}
-        {para1}
-
-        <section className="max-w-6xl datawrapper-dummy-embed">
-          <Iframe
-            title="Countries with Facebook's internet.org"
-            src="https://datawrapper.dwcdn.net/mcT4c/1/"
-            initialHeight={360}
-          />
-        </section>
-
-        {/* // TODO */}
         {para2}
-        <section id="scrolly-1" ref={scrolly1El} className="scrolly">
-          <h2>{`Scrolly 1 ${inView}`}</h2>
 
-          <div
-            ref={ioHook}
-            id="scrolly-canvas"
-            className={`scrolly-canvas ${inView ? "fade-in" : "fade-out"}`}
-          >
-            <figure className="scrolly-figure bg-gray-200">
+        {para2}
+
+        <ScrollyFeature
+          id="scrolly-1"
+          story={story}
+          svg={svg1}
+          stepEnter={({element}) => {
+            if (element.dataset.queries) {
+              toggleSVGclass({
+                objId: "map-asia-1",
+                query: element.dataset.queries,
+                toggleClassName: element.dataset.toggle,
+              });
+            }
+          }}
+          stepExit={({index, direction}) => {
+            console.log(`Local Exit 1: ${index} - ${direction}`);
+          }}
+        >
+          <figure className="scrolly-figure bg-gray-200">
+            <FigureSvg
+              className="scrolly-figure bg-gray-200"
+              svg={svg1}
+              caption="Caption As Props 2"
+              alt="TODO: Alternative description"
+              id="map-asia-1"
+            />
+            <div>
               <p id="scene-counter">Off</p>
               <p id="index-counter">Off</p>
-              <div className="scrolly-chart">
-                <SpotlightChart data={chartData} highlightedBar={currentStep} />
-              </div>
+            </div>
+          </figure>
+        </ScrollyFeature>
+
+        <ScrollyFeature id="scrolly-xxx" story={story} svg={svg1}>
+          <figure className="scrolly-figure bg-gray-200">
+            <FigureSvg
+              className="scrolly-figure bg-gray-200"
+              svg={svg2}
+              caption="Caption As Props 2"
+              alt="TODO: Alternative description"
+              id="map-asia-1"
+            />
+            <div>
+              <p id="scene-counter">Off</p>
+              <p id="index-counter">Off</p>
+            </div>
+          </figure>
+        </ScrollyFeature>
+
+        <p>xxxx</p>
+
+        <section id="scrolly-2" ref={scrolly2El} className="scrolly">
+          <h2>{`Scrolly 2 ${inView2}`}</h2>
+
+          <div
+            ref={ioHook2}
+            id="scrolly-canvas"
+            className={`scrolly-canvas ${inView2 ? "fade-in" : "fade-out"}`}
+          >
+            <p>Boom!</p>
+
+            <figure className="scrolly-figure bg-gray-200">
+              <FigureSvg
+                className="scrolly-figure bg-gray-200"
+                svg={svg2}
+                caption="Caption As Props 2"
+                alt="TODO: Alternative description"
+                id="map-asia-1"
+              />
+              {InnerCounter}
             </figure>
+            <div className="scrolly-chart">
+              <SpotlightChart data={chartData} highlightedBar={currentStep} />
+            </div>
           </div>
 
           <ScrollySteps story={story} />
@@ -226,6 +249,7 @@ const SpotlightOne = () => {
           </figure> */}
 
           <FigureImg
+            img={MyImage}
             caption="Caption: Example PNG Image"
             alt="TODO - Caption: Example PNG Image"
             id="map-dw-1"
@@ -277,4 +301,4 @@ const SpotlightOne = () => {
   );
 };
 
-export default SpotlightOne;
+export default SpotlightTwo;
