@@ -39,7 +39,7 @@ const ScrollyFeature = ({
   const className = c("scrolly-canvas", {
     "fade-in": inView,
     "fade-out": !inView,
-    "my-tansition": progress >= 30 && progress <= 40,
+    // "my-tansition": progress >= 30 && progress <= 40,
   });
 
   return (

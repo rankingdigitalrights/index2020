@@ -8,7 +8,7 @@ import Iframe from "../../components/datawrapper";
 import Layout from "../../components/layout-spotlights";
 import SpotlightChart from "../../components/spotlight-chart";
 import ScrollySteps from "../../components/spotlight-steps";
-import MyImage from "../../images/spotlights/datawrapper-map-dummy.png";
+// import MyImage from "../../images/spotlights/datawrapper-map-dummy.png";
 import MyIcon from "../../images/icons/email.svg";
 import {setupSpotlight} from "../../spotlights-one";
 
@@ -45,7 +45,7 @@ const FigureSvg = ({id, alt, src, caption}) => {
   );
 };
 
-const FigureImg = ({img, id, alt, caption}) => {
+const FigureImg = ({id, alt, caption}) => {
   const [ioHook, inView] = useInView({
     threshold: 0.5,
     triggerOnce: false,
@@ -56,7 +56,6 @@ const FigureImg = ({img, id, alt, caption}) => {
       ref={ioHook}
       className={`spot-figure ${toggleFade(inView)}`}
     >
-      <MyImage />
       <MyIcon alt="XXXX" className="text-cat-freedom stroke-current" />
       <figcaption>{caption}</figcaption>
     </figure>
@@ -227,7 +226,6 @@ const SpotlightOne = () => {
           </figure> */}
 
           <FigureImg
-            img={<MyImage />}
             caption="Caption: Example PNG Image"
             alt="TODO - Caption: Example PNG Image"
             id="map-dw-1"
