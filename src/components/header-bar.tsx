@@ -189,7 +189,7 @@ const HeaderBar = ({className}: HeaderBarProps) => {
                   <li role="none">
                     <IconLink
                       name="Intro essay"
-                      href="/intro"
+                      href="/intro-essay"
                       icon={<IntroEssay className="flex-none w-6 h-6" />}
                     />
                   </li>
@@ -210,19 +210,25 @@ const HeaderBar = ({className}: HeaderBarProps) => {
                   <li>
                     <Link passHref href="/spotlights/spotlight-one">
                       <a className="text-black">
-                        Context before code: How companies should protect human
-                        rights in crisis essay
+                        Context over code: Protecting human rights in times of
+                        crisis
                       </a>
                     </Link>
                   </li>
                   <li>
                     <Link passHref href="/spotlights/spotlight-two">
-                      <a className="text-black">Unaccountable Algorithms</a>
+                      <a className="text-black">
+                        Unaccountable Algorithms: Will company policies ever see
+                        the light of day?
+                      </a>
                     </Link>
                   </li>
                   <li>
-                    <Link passHref href="/spotlights/spotlight-three">
-                      <a className="text-black">Digital rights in China</a>
+                    <Link passHref href="/spotlights/china-tech-giants">
+                      <a className="text-black">
+                        China’s tech giants have proven they can change: But the
+                        state is still their number one stakeholder.
+                      </a>
                     </Link>
                   </li>
                 </ul>
@@ -293,14 +299,14 @@ const HeaderBar = ({className}: HeaderBarProps) => {
                   </li>
                   <li className="py-6">
                     <IconLink
-                      href="/key-findings"
+                      href="/"
                       icon={<ExploreTheData className="flex-none w-6 h-6" />}
                       name="Explore the data"
                     />
                   </li>
                   <li className="py-6">
                     <IconLink
-                      href="/methodology-development"
+                      href="/methodology"
                       icon={<Methodology className="flex-none w-6 h-6" />}
                       name="Methodology"
                     />
@@ -312,7 +318,7 @@ const HeaderBar = ({className}: HeaderBarProps) => {
                 <ul className="list-inside list-none">
                   <li className="py-3">
                     <IconLink
-                      href="/policy-recommendations"
+                      href="/"
                       icon={<ScoresOverTime className="flex-none w-6 h-6" />}
                       name="RDR scores over time"
                     />
