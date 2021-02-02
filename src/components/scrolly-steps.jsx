@@ -34,7 +34,7 @@ const ScrollySteps = (props) => {
                 dangerouslySetInnerHTML={{
                   __html: content,
                 }}
-              ></div>
+              />
             </div>
           );
         },

@@ -204,8 +204,19 @@
 
   /* Spotlights Start */
 
+  main.spotlight h1 {
+    max-width: 900px;
+    margin: 2rem auto;
+  }
+
   main.spotlight {
     max-width: 100%;
+  }
+
+  main.spotlight .hero {
+    height: 100vh;
+    width: 100%;
+    margin-top: -60px;
   }
 
   main.spotlight .fade-in {
@@ -310,6 +321,10 @@
 
   main.spotlight figure img {
     margin: 1rem auto;
+  }
+
+  figure svg {
+    margin: 0 auto;
   }
 
   .scrolly-canvas figure.figure-svg {

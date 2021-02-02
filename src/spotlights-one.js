@@ -40,7 +40,8 @@ const resetScene = (figure) => {
   document.querySelector("p#index-counter").textContent = "Off";
 };
 
-const handleStepEnter = (figure, steps, {index, direction, element}) => {
+const handleStepEnter = (figure, steps, {index, direction}) => {
+  // {index, direction, element}
   console.log("Generic handleStepEnter");
   console.log(`Generic enter: ${index} - ${direction}`);
   toggleActiveStep(index, steps);
@@ -57,6 +58,7 @@ const handleStepExit = (figure, steps, {index, direction}) => {
   }
 };
 
+/* eslint consistent-return: "off" */
 export const setupSpotlight = (
   ref,
   scroller,
@@ -89,7 +91,5 @@ export const setupSpotlight = (
       localOnStepExit(...args);
     });
 
-  return () => {
-    scroller.destroy();
-  };
+  return () => scroller.destroy();
 };

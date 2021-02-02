@@ -1,5 +1,5 @@
 import c from "clsx";
-import React, {useRef, useMemo, useEffect} from "react";
+import React, {useEffect, useMemo, useRef} from "react";
 import {useInView} from "react-intersection-observer";
 import scrollama from "scrollama";
 
