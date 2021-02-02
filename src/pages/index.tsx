@@ -1,20 +1,18 @@
 import React, {useState} from "react";
-import {Swiper as SwiperType} from "swiper";
-import {Swiper, SwiperSlide} from "swiper/react";
 
 import HomeBox from "../components/home-box";
 import HomeCategorySelector from "../components/home-category-selector";
+import HomeHighlightsSlider from "../components/home-highlights-slider";
 import HomeRankChart from "../components/home-rank-chart";
+import HomeSpotlightBox from "../components/home-spotlight-box";
 import Layout from "../components/layout";
-import {companyRankingData} from "../data";
-import {useBreakpointSize} from "../hooks";
-import ChevronLeft from "../images/icons/chevron-left.svg";
-import ChevronRight from "../images/icons/chevron-right.svg";
+import {companyHighlights, companyRankingData} from "../data";
 import HomeDocument from "../images/icons/home-document.svg";
 import HomeSearch from "../images/icons/home-search.svg";
-import {CompanyRank, IndicatorCategoryExt} from "../types";
+import {CompanyHighlight, CompanyRank, IndicatorCategoryExt} from "../types";
 
 interface HomeProps {
+  highlights: CompanyHighlight[];
   // First element are telecom rankings, second are platform rankings.
   totalRanking: [CompanyRank[], CompanyRank[]];
   // First element are telecom rankings, second are platform rankings.
@@ -44,9 +42,11 @@ export const getStaticProps = async () => {
       ];
     }),
   );
+  const highlights = await companyHighlights();
 
   return {
     props: {
+      highlights,
       totalRanking,
       governanceRanking,
       freedomRanking,
@@ -56,13 +56,12 @@ export const getStaticProps = async () => {
 };
 
 const Home = ({
+  highlights,
   totalRanking,
   governanceRanking,
   freedomRanking,
   privacyRanking,
 }: HomeProps) => {
-  const screenSize = useBreakpointSize();
-  const [swiper, setSwiper] = useState<SwiperType>();
   const [selectedCategory, setSelectedCategory] = useState<
     IndicatorCategoryExt
   >("total");
@@ -105,14 +104,6 @@ const Home = ({
     }
   };
 
-  let slidesCount = 3;
-  if (screenSize <= 1024) {
-    slidesCount = 2;
-  }
-  if (screenSize <= 640) {
-    slidesCount = 1;
-  }
-
   return (
     <Layout>
       <div className="relative">
@@ -123,13 +114,14 @@ const Home = ({
 
         <div className="lg:container lg:mx-auto flex flex-col lg:flex-row lg:justify-between">
           <div className="lg:w-1/3 lg:flex-grow items-center bg-accent-red z-10">
-            <HomeBox title="2020 RDR Corporate Accountability Index" href="/">
+            <HomeBox
+              title="How do internet companies treat human rights?"
+              href="/"
+            >
               <div className="flex flex-col h-full justify-end">
                 <p>
-                  Soluta omnis exercitationem dolorem qui eos. At libero alias
-                  aut. Voluptas sint omnis ullam velit eius. Soluta omnis
-                  exercitationem dolorem qui eos. At libero alias aut. Voluptas
-                  sint omnis ullam velit eius.
+                  RDR Director Jessica Dheere on our fifth index and the path
+                  forward.
                 </p>
               </div>
             </HomeBox>
@@ -137,11 +129,15 @@ const Home = ({
 
           <div className="flex flex-col sm:flex-row lg:w-2/3 bg-diff-add z-10">
             <div className="w-full sm:w-1/2 sm:flex-grow items-center bg-diff-add z-10 h-full">
-              <HomeBox title="Key Findings" href="/key-findings">
+              <HomeBox
+                className="bg-key-findings"
+                title="Key Findings"
+                href="/key-findings"
+              >
                 <div className="flex flex-col h-full justify-between">
                   <p>
-                    Soluta omnis exercitationem dolorem qui eos. At libero alias
-                    aut. Voluptas sint omnis ullam velit eius.
+                    Companies are improving in principle, but failing in
+                    practice
                   </p>
 
                   <HomeSearch />
@@ -154,7 +150,9 @@ const Home = ({
                 href="/policy-recommendations"
                 theme="dark"
               >
-                <div className="flex flex-col h-full justify-end">
+                <div className="flex flex-col h-full justify-between">
+                  <p>What policymakers and companies need to know for 2021</p>
+
                   <HomeDocument />
                 </div>
               </HomeBox>
@@ -164,7 +162,9 @@ const Home = ({
       </div>
 
       <div className="lg:container lg:mx-auto flex flex-col lg:flex-row lg:justify-between  my-6">
-        <div className="lg:flex-grow w-full lg:w-1/3 border">AAA</div>
+        <div className="font-circular font-bold text-xl leading-10 lg:flex-grow w-full lg:w-1/3 p-3">
+          2020 RDR Index
+        </div>
 
         <div className="flex flex-col sm:flex-row lg:w-2/3">
           <div className="flex flex-col w-full">
@@ -192,56 +192,28 @@ const Home = ({
       </div>
 
       <div className="lg:container lg:mx-auto flex flex-col md:flex-row md:justify-between">
-        <div className="md:w-1/3 h-64 border">AAA</div>
-        <div className="md:w-1/3 h-64 border">AAA</div>
-        <div className="md:w-1/3 h-64 border">AAA</div>
+        <HomeSpotlightBox
+          className="md:w-1/3 h-64 bg-context-over-code"
+          title="Context over code"
+          href="/spotlights/spotlight-one"
+          text="Protecting human rights in times of crisis"
+        />
+        <HomeSpotlightBox
+          className="md:w-1/3 h-64 bg-unaccountable-algorithms"
+          title="Unaccountable algorithms"
+          href="/spotlights/spotlight-two"
+          text="Will company policies ever see the light of day?"
+        />
+        <HomeSpotlightBox
+          className="md:w-1/3 h-64 bg-china-tech-giants"
+          title="China’s tech giants have proven they can change."
+          href="/spotlights/china-tech-giants"
+          text="But the state is still their number one stakeholder."
+        />
       </div>
 
-      <div className="md:container md:mx-auto flex flex-row md:justify-between items-center my-6">
-        <div className="relative w-full flex items-center">
-          <div className="w-full">
-            <Swiper
-              spaceBetween={50}
-              slidesPerView={slidesCount}
-              onSwiper={(s) => setSwiper(s)}
-              pagination={{clickable: true}}
-              loop
-            >
-              <SwiperSlide>
-                <div className="h-64 border">A</div>
-              </SwiperSlide>
-              <SwiperSlide>
-                <div className="h-64 border">B</div>
-              </SwiperSlide>
-              <SwiperSlide>
-                <div className="h-64 border">C</div>
-              </SwiperSlide>
-              <SwiperSlide>
-                <div className="h-64 border">D</div>
-              </SwiperSlide>
-              <SwiperSlide>
-                <div className="h-64 border">E</div>
-              </SwiperSlide>
-            </Swiper>
-          </div>
-
-          <div className="cursor-pointer absolute z-10">
-            <ChevronLeft
-              onClick={() => {
-                if (swiper) swiper.slidePrev();
-              }}
-            />
-          </div>
-
-          <div className="cursor-pointer absolute right-0 z-10">
-            <ChevronRight
-              className="float-right"
-              onClick={() => {
-                if (swiper) swiper.slideNext();
-              }}
-            />
-          </div>
-        </div>
+      <div className="lg:container lg:mx-auto flex flex-row md:justify-between items-center my-6">
+        <HomeHighlightsSlider highlights={highlights} />
       </div>
     </Layout>
   );
