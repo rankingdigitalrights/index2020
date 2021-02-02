@@ -1,13 +1,7 @@
 /* eslint no-param-reassign: off */
 const updateBGColor = (figure, color = "bg-gray-200") => {
   figure.classList.remove(
-    ...[
-      "bg-gray-200",
-      "bg-cat-governance",
-      "bg-cat-freedom",
-      "bg-cat-privacy",
-      "bg-gray-400",
-    ],
+    ...["bg-cat-governance", "bg-cat-freedom", "bg-cat-privacy", "bg-gray-400"],
   );
   figure.classList.add(color);
 };
@@ -22,22 +16,10 @@ const toggleActiveStep = (index, steps) => {
   );
 };
 
-export const toggleSVGclass = ({objId, query, toggleClassName}) => {
-  console.log(toggleClassName); // TODO
-  const Obj = document.querySelector(`#${objId} svg`);
-  [...Obj.querySelectorAll(query)].forEach((item) => {
-    item.classList.toggle("fade-out");
-    item.classList.toggle("fade-in");
-  });
-};
-
-// FIXME: remove!!!
-// window.toggleSVGclass = toggleSVGclass;
-
 const resetScene = (figure) => {
   updateBGColor(figure);
-  document.querySelector("p#scene-counter").textContent = "Off";
-  document.querySelector("p#index-counter").textContent = "Off";
+  figure.querySelector("p#scene-counter").textContent = "Off";
+  figure.querySelector("p#index-counter").textContent = "Off";
 };
 
 const handleStepEnter = (figure, steps, {index, direction, element}) => {
@@ -46,9 +28,10 @@ const handleStepEnter = (figure, steps, {index, direction, element}) => {
   toggleActiveStep(index, steps);
   figure.querySelector("p#scene-counter").textContent = "On";
   figure.querySelector("p#index-counter").textContent = index;
+  updateBGColor(figure, element.dataset.color);
 };
 
-const handleStepExit = (figure, steps, {index, direction}) => {
+const handleStepExit = (figure, {index, direction}) => {
   if (
     (index === 0 && direction === "up") ||
     (index === figure.maxStep && direction === "down")
@@ -67,9 +50,7 @@ export const setupSpotlight = (
   const {current: scrolly} = ref;
 
   const figure = scrolly.querySelector("figure.scrolly-figure");
-  // figure can be undefined and therefore we return early. Safeguard.
-  if (!figure) return;
-
+  console.log(figure);
   const steps = scrolly.querySelectorAll(".step");
   figure.maxStep = steps.length - 1;
 
@@ -77,14 +58,14 @@ export const setupSpotlight = (
     .setup({
       step: stepSelector,
       offset: 0.8,
-      debug: true,
+      debug: false,
     })
     .onStepEnter((...args) => {
       handleStepEnter(figure, steps, ...args);
       localOnStepEnter(...args);
     })
     .onStepExit((...args) => {
-      handleStepExit(figure, steps, ...args);
+      handleStepExit(figure, ...args);
       localOnStepExit(...args);
     });
 

@@ -4,7 +4,7 @@ import {useInView} from "react-intersection-observer";
 import scrollama from "scrollama";
 
 import {setupSpotlight} from "../spotlights-two";
-import ScrollySteps from "./spotlight-steps";
+import ScrollySteps from "./scrolly-steps";
 
 const ScrollyFeature = ({
   id,
@@ -43,9 +43,9 @@ const ScrollyFeature = ({
 
   return (
     <section id={id} ref={scrollyEl} className="scrolly">
-      <h2>{`Scrolly 1 ${inView}`}</h2>
+      <h2 className="sticky-h">{`${id} ${inView}`}</h2>
 
-      <div ref={ioHook} id={`scrolly-canvas-${id}`} className={className}>
+      <div ref={ioHook} id={`canvas-${id}`} className={className}>
         {children}
       </div>
 

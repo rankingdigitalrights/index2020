@@ -7,7 +7,7 @@ import story from "../../../data/spotlights/spotlight-1.json";
 import Iframe from "../../components/datawrapper";
 import Layout from "../../components/layout-spotlights";
 import SpotlightChart from "../../components/spotlight-chart";
-import ScrollySteps from "../../components/spotlight-steps";
+import ScrollySteps from "../../components/scrolly-steps";
 import MyImage from "../../images/spotlights/datawrapper-map-dummy.png";
 import {setupSpotlight} from "../../spotlights-one";
 

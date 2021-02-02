@@ -10,20 +10,31 @@ const ScrollySteps = (props) => {
         data-color="bg-gray-400"
       />
       {props.story.steps.map(
-        ({title, company, content, color, queries = "", toggle = ""}) => {
+        ({
+          title,
+          company,
+          content,
+          color,
+          queries = "",
+          toggle = "fade-out",
+        }) => {
           // FIXME: I needed to use something else than the index as the unique key.
           // Not sure if the title is right as a identifier but it works for now.
           return (
             <div
               key={title}
-              className="step"
+              className="step shadow"
               data-step={company}
               data-color={color}
               data-queries={queries}
               data-toggle={toggle}
             >
-              <h3>{title}</h3>
-              <p>{content}</p>
+              <h2 className="bg-white-100">{title}</h2>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: content,
+                }}
+              ></div>
             </div>
           );
         },
