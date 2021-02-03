@@ -33,7 +33,7 @@ const ScrollyFeature = ({
     return () => {
       unmount();
     };
-  }, [scroller, scrollyEl]);
+  }, [scroller, scrollyEl, id, stepEnter, stepExit]);
 
   // equivalent to `scrolly-canvas ${inView ? "fade-in" : "fade-out"}`
   const className = c("scrolly-canvas", {

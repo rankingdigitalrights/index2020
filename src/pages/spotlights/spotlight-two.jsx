@@ -29,7 +29,7 @@ const FigureSvg = ({id, alt, src, caption}) => {
       .then((res) => res.text())
       .then(setSvg)
       .catch(() => undefined);
-  }, []); // [props.src] removed for useOnce
+  }, [src]);
 
   return (
     <figure
