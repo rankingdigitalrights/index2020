@@ -6,25 +6,21 @@ import {useInView} from "react-intersection-observer";
 
 import story1 from "../../../data/spotlights/spotlight-1.json";
 import story2 from "../../../data/spotlights/spotlight-2.json";
-import FigureSvg from "../../components/figure-svg";
 import FigureImg from "../../components/figure-img";
+import FigureSvg from "../../components/figure-svg";
 // import Layout from "../../components/layout-spotlights";
 import Layout from "../../components/layout";
 import ScrollyFeature from "../../components/scrolly-feature";
+import ImgChartF4 from "../../images/spotlights/soe-f4-barchart.png";
+import ImgProtest from "../../images/spotlights/soe-myanmar-protest.jpeg";
 // import DummyPNG from "../../images/spotlights/datawrapper-map-dummy.png";
 // import SpotlightChart from "../../components/spotlight-chart";
 import imgTableG4 from "../../images/spotlights/soe-table-g4.png";
-import ImgProtest from "../../images/spotlights/soe-myanmar-protest.jpeg";
-import ImgWhiteFlags from "../../images/spotlights/soe-white-flags.jpeg";
 import ImgTweetFB from "../../images/spotlights/soe-tweet-fb.png";
-import ImgChartF4 from "../../images/spotlights/soe-f4-barchart.png";
+import ImgWhiteFlags from "../../images/spotlights/soe-white-flags.jpeg";
 import {toggleSVGclass} from "../../spotlights-one";
 
 // TODO: refactor into spotlight-components
-
-const toggleFade = (inView) => {
-  return inView ? "fade-in" : "fade-out";
-};
 
 // const ExternalLink = ({href, text}) => {
 //   return (
@@ -53,145 +49,25 @@ const InnerCounter = (
 );
 
 export const getStaticProps = async () => {
-  const svg_FbYt = (
+  const svgFbYt = (
     await fsP.readFile(
       path.join(process.cwd(), "public/svg/soe-fb-youtube-2.svg"),
     )
   ).toString();
 
-  const svg_WorldMap = (
+  const svgWorldMap = (
     await fsP.readFile(path.join(process.cwd(), "public/svg/soe-worldmap.svg"))
-  ).toString();
-
-  const svg_Matrix = (
-    await fsP.readFile(path.join(process.cwd(), "public/svg/matrix-mock.svg"))
   ).toString();
 
   return {
     props: {
-      svg_FbYt,
-      svg_WorldMap,
-      svg_Matrix,
+      svgFbYt,
+      svgWorldMap,
     },
   };
 };
 
-const SpotlightOne = ({svg_FbYt, svg_WorldMap, svg_Matrix}) => {
-  // const [currentStep, setCurrentStep] = useState();
-  const [ioHook2] = useInView({
-    threshold: [0.5],
-    triggerOnce: true,
-  });
-
-  return (
-    <Layout>
-      <main className="container mx-auto spotlight">
-        {/* <HeroImage /> */}
-        {/* <FigureImg
-          img={HeroImage}
-          // caption="Caption: Example PNG Image"
-          alt="TODO - Caption: Example PNG Image"
-          // id="map-dw-1"
-        /> */}
-        <HeroImg />
-        <h1>
-          Context before code: Protecting human rights in a state of emergency
-        </h1>
-        {section1}
-        {section2a}
-        <ScrollyFeature
-          id="scrolly-map"
-          ref={ioHook2}
-          story={story1}
-          stepEnter={({index, element, direction}) => {
-            if (element.dataset.queries) {
-              toggleSVGclass({
-                objId: "map-asia-1",
-                query: element.dataset.queries,
-                toggleClassName: element.dataset.toggle,
-              });
-            }
-            if (index === 3 && direction === "down") {
-              const mySVG = document.querySelector("#map-asia-1 svg");
-              const initialbox = mySVG.getBBox();
-              const shutdownbox = mySVG.querySelector("#Shutdowns").getBBox();
-              const oldView = `${initialbox.x} ${initialbox.y} ${initialbox.width} ${initialbox.height}`;
-              const newView = `${shutdownbox.x * 0.9} ${shutdownbox.y * 0.9} ${
-                shutdownbox.width * 1.2
-              } ${shutdownbox.height * 1.1}`;
-
-              /* target syntax */
-              // <animate attributeName="viewBox" values="0 0 600 400; 250 180 300 200" begin="indefinite" dur="1s" fill="freeze"/>
-
-              const anim = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "animate",
-              );
-              anim.setAttribute("id", "zoom-1");
-              anim.setAttribute("attributeName", "viewBox");
-              anim.setAttribute("begin", "indefinite");
-              anim.setAttribute("values", `${oldView}; ${newView}`);
-              anim.setAttribute("fill", "freeze");
-              anim.setAttribute("dur", "1s");
-              mySVG.appendChild(anim);
-              mySVG.querySelector("animate#zoom-1").beginElement();
-            }
-          }}
-          stepExit={({index, direction}) => {
-            console.log(`Local Exit 1: ${index} - ${direction}`);
-          }}
-        >
-          <figure className="scrolly-figure bg-gray-200">
-            <FigureSvg
-              className="scrolly-figure bg-gray-200"
-              svg={svg_WorldMap}
-              caption="Caption As Props 1"
-              alt="TODO: Alternative description"
-              id="map-asia-1"
-            />
-            {InnerCounter}
-          </figure>
-        </ScrollyFeature>
-        {section2b}
-        {section3}
-        {section4}
-        <ScrollyFeature
-          id="scrolly-graph"
-          story={story2}
-          stepEnter={({index, element}) => {
-            console.log(index, element.dataset);
-            if (element.dataset.queries) {
-              toggleSVGclass({
-                objId: "chart-q1",
-                query: element.dataset.queries,
-                toggleClassName: element.dataset.toggle,
-              });
-            }
-          }}
-          stepExit={({index, direction}) => {
-            console.log(`Local Exit 1: ${index} - ${direction}`);
-          }}
-        >
-          <figure className="scrolly-figure bg-gray-200">
-            <FigureSvg
-              className="scrolly-figure bg-gray-200"
-              svg={svg_FbYt}
-              caption="Optional Caption"
-              alt="TODO: Alternative description"
-              id="chart-q1"
-            />
-            <div>
-              <p id="scene-counter">Off</p>
-              <p id="index-counter">Off</p>
-            </div>
-          </figure>
-        </ScrollyFeature>
-        {section5}
-        {section6}
-      </main>
-    </Layout>
-  );
-};
+// CONTENT
 
 const section1 = (
   <section className="max-w-6xl">
@@ -443,7 +319,7 @@ const section3 = (
       alt="TODO - Caption: Example PNG Image"
     />
     {/* <FigureSvg
-      img={svg_TableG4}
+      img={svgTableG4}
       caption="TBA; Currently no caption"
       alt="TODO - Caption: Example PNG Image"
       id="map-dw-1"
@@ -461,9 +337,9 @@ const section3 = (
         When a social media-driven crisis unfolds, companies often fail to
         respond unless they perceive a risk to their reputation.
       </span>{" "}
-      This encourages the proliferation of "scandal-driven&rdquo; human rights
-      due diligence that, at most, helps to survey or contain the damage rather
-      than prevent it.
+      This encourages the proliferation of &ldquo;scandal-driven&rdquo; human
+      rights due diligence that, at most, helps to survey or contain the damage
+      rather than prevent it.
       <sup data-footnote="See Kendyl Salcito, &ldquo;Company-commissioned HRIA: Concepts, Practice, Limitations and Opportunities,&rdquo; in Handbook on Human Rights Impact Assessment, ed. Nora G&ouml;tzmann (Northhampton, MA: Edward Elgar Publishing, 2019), 32&ndash;48.">
         2
       </sup>
@@ -755,5 +631,124 @@ const section6 = (
     </p>
   </section>
 );
+
+// MAIN
+
+const SpotlightOne = ({svgFbYt, svgWorldMap}) => {
+  // const [currentStep, setCurrentStep] = useState();
+  const [ioHook2] = useInView({
+    threshold: [0.5],
+    triggerOnce: true,
+  });
+
+  return (
+    <Layout>
+      <main className="container mx-auto spotlight">
+        {/* <HeroImage /> */}
+        {/* <FigureImg
+          img={HeroImage}
+          // caption="Caption: Example PNG Image"
+          alt="TODO - Caption: Example PNG Image"
+          // id="map-dw-1"
+        /> */}
+        <HeroImg />
+        <h1>
+          Context before code: Protecting human rights in a state of emergency
+        </h1>
+        {section1}
+        {section2a}
+        <ScrollyFeature
+          id="scrolly-map"
+          ref={ioHook2}
+          story={story1}
+          stepEnter={({index, element, direction}) => {
+            if (element.dataset.queries) {
+              toggleSVGclass({
+                objId: "map-asia-1",
+                query: element.dataset.queries,
+                toggleClassName: element.dataset.toggle,
+              });
+            }
+            if (index === 3 && direction === "down") {
+              const mySVG = document.querySelector("#map-asia-1 svg");
+              const initialbox = mySVG.getBBox();
+              const shutdownbox = mySVG.querySelector("#Shutdowns").getBBox();
+              const oldView = `${initialbox.x} ${initialbox.y} ${initialbox.width} ${initialbox.height}`;
+              const newView = `${shutdownbox.x * 0.9} ${shutdownbox.y * 0.9} ${
+                shutdownbox.width * 1.2
+              } ${shutdownbox.height * 1.1}`;
+
+              /* target syntax */
+              // <animate attributeName="viewBox" values="0 0 600 400; 250 180 300 200" begin="indefinite" dur="1s" fill="freeze"/>
+
+              const anim = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "animate",
+              );
+              anim.setAttribute("id", "zoom-1");
+              anim.setAttribute("attributeName", "viewBox");
+              anim.setAttribute("begin", "indefinite");
+              anim.setAttribute("values", `${oldView}; ${newView}`);
+              anim.setAttribute("fill", "freeze");
+              anim.setAttribute("dur", "1s");
+              mySVG.append(anim);
+              mySVG.querySelector("animate#zoom-1").beginElement();
+            }
+          }}
+          stepExit={({index, direction}) => {
+            console.log(`Local Exit 1: ${index} - ${direction}`); // TODO
+          }}
+        >
+          <figure className="scrolly-figure bg-gray-200">
+            <FigureSvg
+              className="scrolly-figure bg-gray-200"
+              svg={svgWorldMap}
+              caption="Caption As Props 1"
+              alt="TODO: Alternative description"
+              id="map-asia-1"
+            />
+            {InnerCounter}
+          </figure>
+        </ScrollyFeature>
+        {section2b}
+        {section3}
+        {section4}
+        <ScrollyFeature
+          id="scrolly-graph"
+          story={story2}
+          stepEnter={({index, element}) => {
+            console.log(index, element.dataset);
+            if (element.dataset.queries) {
+              toggleSVGclass({
+                objId: "chart-q1",
+                query: element.dataset.queries,
+                toggleClassName: element.dataset.toggle,
+              });
+            }
+          }}
+          stepExit={({index, direction}) => {
+            console.log(`Local Exit 1: ${index} - ${direction}`);
+          }}
+        >
+          <figure className="scrolly-figure bg-gray-200">
+            <FigureSvg
+              className="scrolly-figure bg-gray-200"
+              svg={svgFbYt}
+              caption="Optional Caption"
+              alt="TODO: Alternative description"
+              id="chart-q1"
+            />
+            <div>
+              <p id="scene-counter">Off</p>
+              <p id="index-counter">Off</p>
+            </div>
+          </figure>
+        </ScrollyFeature>
+        {section5}
+        {section6}
+      </main>
+    </Layout>
+  );
+};
 
 export default SpotlightOne;
