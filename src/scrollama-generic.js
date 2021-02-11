@@ -18,16 +18,16 @@ const toggleActiveStep = (index, steps) => {
 
 const resetScene = (figure) => {
   updateBGColor(figure);
-  figure.querySelector("p#scene-counter").textContent = "Off";
-  figure.querySelector("p#index-counter").textContent = "Off";
+  // figure.querySelector("p#scene-counter").textContent = "Off";
+  // figure.querySelector("p#index-counter").textContent = "Off";
 };
 
 const handleStepEnter = (figure, steps, {index, direction, element}) => {
   console.log(`Generic enter: ${index} - ${direction}`);
   console.log("payload", element);
   toggleActiveStep(index, steps);
-  figure.querySelector("p#scene-counter").textContent = "On";
-  figure.querySelector("p#index-counter").textContent = index;
+  // figure.querySelector("p#scene-counter").textContent = "On";
+  // figure.querySelector("p#index-counter").textContent = index;
   updateBGColor(figure, element.dataset.color);
 };
 
@@ -50,7 +50,6 @@ export const setupSpotlight = (
   const {current: scrolly} = ref;
 
   const figure = scrolly.querySelector("figure.scrolly-figure");
-  console.log(figure);
   const steps = scrolly.querySelectorAll(".step");
   figure.maxStep = steps.length - 1;
 
@@ -74,13 +73,35 @@ export const setupSpotlight = (
   };
 };
 
-export const toggleSVGclass = ({objId, query, toggleClassName}) => {
-  console.log(toggleClassName); // TODO
+export const toggleSVGclass = ({
+  objId,
+  showLayers,
+  hideLayers,
+  directionUp = false,
+}) => {
+  console.log("showLayers", showLayers); // TODO
   const Obj = document.querySelector(`#${objId} svg`);
-  [...Obj.querySelectorAll(query)].forEach((item) => {
-    item.classList.toggle("fade-out");
-    item.classList.toggle("fade-in");
-  });
+  showLayers &&
+    [...Obj.querySelectorAll(showLayers)].forEach((item) => {
+      if (!directionUp) {
+        item.classList.remove("fade-out");
+        item.classList.add("fade-in");
+      } else {
+        item.classList.remove("fade-in");
+        item.classList.add("fade-out");
+      }
+    });
+
+  hideLayers &&
+    [...Obj.querySelectorAll(hideLayers)].forEach((item) => {
+      if (!directionUp) {
+        item.classList.remove("fade-in");
+        item.classList.add("fade-out");
+      } else {
+        item.classList.remove("fade-out");
+        item.classList.add("fade-in");
+      }
+    });
 };
 
 export const resetSVGviewBox = function (svgID, oldRegion, newRegion) {
