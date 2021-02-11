@@ -1,4 +1,5 @@
 /* eslint no-param-reassign: off */
+/* eslint no-unneeded-ternary: off */
 const updateBGColor = (figure, color = "bg-gray-200") => {
   figure.classList.remove(
     ...["bg-cat-governance", "bg-cat-freedom", "bg-cat-privacy", "bg-gray-400"],
@@ -77,11 +78,12 @@ export const toggleSVGclass = ({
   objId,
   showLayers,
   hideLayers,
-  directionUp = false,
+  direction = "down",
 }) => {
+  const directionUp = direction === "down" ? false : true;
   console.log("showLayers", showLayers); // TODO
   const Obj = document.querySelector(`#${objId} svg`);
-  showLayers &&
+  if (showLayers) {
     [...Obj.querySelectorAll(showLayers)].forEach((item) => {
       if (!directionUp) {
         item.classList.remove("fade-out");
@@ -91,8 +93,9 @@ export const toggleSVGclass = ({
         item.classList.add("fade-out");
       }
     });
+  }
 
-  hideLayers &&
+  if (hideLayers) {
     [...Obj.querySelectorAll(hideLayers)].forEach((item) => {
       if (!directionUp) {
         item.classList.remove("fade-in");
@@ -102,6 +105,7 @@ export const toggleSVGclass = ({
         item.classList.add("fade-in");
       }
     });
+  }
 };
 
 export const resetSVGviewBox = function (svgID, oldRegion, newRegion) {

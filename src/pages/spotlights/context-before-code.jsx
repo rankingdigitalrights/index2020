@@ -624,16 +624,15 @@ const SpotlightOne = ({svgFbYt, svgWorldMap}) => {
             ref={ioHook2}
             story={story1}
             stepEnter={({index, element, direction}) => {
-              let directionUp = direction === "down" ? false : true;
               if (element.dataset.show || element.dataset.hide) {
                 toggleSVGclass({
                   objId: "map-asia-1",
                   showLayers: element.dataset.show,
                   hideLayers: element.dataset.hide,
-                  directionUp: directionUp,
+                  direction,
                 });
               }
-              if (index === 2 && !directionUp) {
+              if (index === 2 && direction === "down") {
                 const SVG = document.querySelector("#map-asia-1 svg");
                 animateSVGviewBox(
                   SVG,
@@ -669,14 +668,13 @@ const SpotlightOne = ({svgFbYt, svgWorldMap}) => {
             id="scrolly-graph"
             story={story2}
             stepEnter={({element, direction}) => {
-              let directionUp = direction === "down" ? false : true;
               // console.log(index, element.dataset);
               if (element.dataset.show || element.dataset.hide) {
                 toggleSVGclass({
                   objId: "chart-q1",
                   showLayers: element.dataset.show,
                   hideLayers: element.dataset.hide,
-                  directionUp: directionUp,
+                  direction,
                 });
               }
             }}

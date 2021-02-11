@@ -55,7 +55,8 @@
       "title": "[Final Step | Conlusion | Zoom Out]",
       "content": "",
       "color": "bg-cat-freedom",
-      "showLayers": "#Labels"
+      "showLayers": "#Labels",
+      "hideLayers": "#Kashmir, #Rakhine, #Chin"
     }
   ]
 }
