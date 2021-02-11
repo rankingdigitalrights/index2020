@@ -1,26 +1,25 @@
 /* eslint no-param-reassign: off */
-import React, {useEffect, useMemo, useRef, useState} from "react";
-import {useInView} from "react-intersection-observer";
+import React from "react";
 
+// import React, {useEffect, useMemo, useRef, useState} from "react";
+// import {useInView} from "react-intersection-observer";
 import FigureImg from "../../components/figure-img";
 // import FigureSvg from "../../components/figure-svg";
 import Layout from "../../components/layout";
 import NarrativeContainer from "../../components/narrative-container";
+import imgBarcode from "../../images/spotlights/alg-barcode-by-pawel-kuczynski.jpg";
+import imgFacebookSegment from "../../images/spotlights/alg-facebook-segment-vladan-joler.jpeg";
+import imgProtesters from "../../images/spotlights/alg-Protesters_at_the_endSARS_protest_in_Lagos,_Nigeria_54.jpg";
+import imgShareGraphic from "../../images/spotlights/alg-share-placeholder.jpg";
 // import {components} from "../../mdx";
-import {NarrativeProps} from "../../types";
-
+// import {NarrativeProps} from "../../types";
 import imgDummyPlaceholder from "../../images/spotlights/dummy-image-placeholder.png";
 
-import imgShareGraphic from "../../images/spotlights/alg-share-placeholder.jpg";
-import imgBarcode from "../../images/spotlights/alg-barcode-by-pawel-kuczynski.jpg";
-import imgProtesters from "../../images/spotlights/alg-Protesters_at_the_endSARS_protest_in_Lagos,_Nigeria_54.jpg";
-import imgFacebookSegment from "../../images/spotlights/alg-facebook-segment-vladan-joler.jpeg";
-
 const SpotAlgorithms = () => {
-  const [ioHook2] = useInView({
-    threshold: [0.6],
-    triggerOnce: true,
-  });
+  // const [ioHook2] = useInView({
+  //   threshold: [0.6],
+  //   triggerOnce: true,
+  // });
 
   return (
     <Layout>
