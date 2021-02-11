@@ -8,6 +8,7 @@ import {
   CompanyHighlight,
   CompanyIndex,
   CompanyKind,
+  CompanyMeta,
   CompanyRank,
   CompanyScoreDiff,
   CompanyYear,
@@ -19,18 +20,12 @@ import {
   IndicatorCompanyScore,
   IndicatorDetails,
   IndicatorElements,
+  NarrativePage,
   Service,
   ServiceCompanyRank,
   ServiceKind,
 } from "./types";
 import {unreachable} from "./utils";
-
-const loadFile = (file: string): (() => Promise<string>) => async (): Promise<
-  string
-> => {
-  const data = await fsP.readFile(path.join(process.cwd(), file));
-  return data.toString();
-};
 
 const loadJson = <T extends unknown>(
   file: string,
@@ -98,6 +93,19 @@ export const companyServices = async (
   return loadJson<Service[]>(path.join(companyDir, "services.json"))().catch(
     () => {
       throw new Error(`Couldn't extract company services for "${companyId}."`);
+    },
+  );
+};
+
+/*
+ * Load the company meta.
+ */
+export const companyMeta = async (companyId: string): Promise<CompanyMeta> => {
+  const companyDir = path.join("data/companies", companyId);
+
+  return loadJson<CompanyMeta>(path.join(companyDir, "meta.json"))().catch(
+    () => {
+      throw new Error(`Couldn't extract company meta for "${companyId}."`);
     },
   );
 };
@@ -273,35 +281,41 @@ export const companyDiffScoresData = async (
 /*
  * Load the intro essay HTML.
  */
-export const introEssay = loadFile("data/narratives/intro-essay.mdx");
+export const introEssay = loadJson<NarrativePage>(
+  "data/narratives/intro-essay.json",
+);
 
 /*
  * Load the about us HTML.
  */
-export const aboutUs = loadFile("data/narratives/about-us.mdx");
+export const aboutUs = loadJson<NarrativePage>("data/narratives/about-us.json");
 
 /*
  * Load the intro essay HTML.
  */
-export const keyFindings = loadFile("data/narratives/key-findings.mdx");
+export const keyFindings = loadJson<NarrativePage>(
+  "data/narratives/key-findings.json",
+);
 
 /*
  * Load the policy recommendations HTML.
  */
-export const policyRecommendations = loadFile(
-  "data/narratives/policy-recommendations.mdx",
+export const policyRecommendations = loadJson<NarrativePage>(
+  "data/narratives/policy-recommendations.json",
 );
 
 /*
  * Load the methodology HTML.
  */
-export const methodology = loadFile("data/narratives/methodology.mdx");
+export const methodology = loadJson<NarrativePage>(
+  "data/narratives/methodology.json",
+);
 
 /*
  * Load the china tech giants HTML.
  */
-export const chinaTechGiants = loadFile(
-  "data/narratives/china-tech-giants.mdx",
+export const chinaTechGiants = loadJson<NarrativePage>(
+  "data/narratives/china-tech-giants.json",
 );
 
 /*

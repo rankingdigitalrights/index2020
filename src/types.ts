@@ -39,6 +39,17 @@ export type CompanyScoreDiff = {
   score: IndicatorScore;
 };
 
+export type CompanyMeta = {
+  company: string;
+  researchers: string[];
+  website: string;
+  marketCap: string;
+  marketCapDate: string;
+  exchange: string;
+  stockSymbol: string;
+  operatingCompany?: string;
+};
+
 export type CompanyDetails = {
   id: string;
   printName: string;
@@ -281,7 +292,17 @@ export type CompanyHighlight = {
 };
 
 export interface NarrativeProps {
-  source: MdxRemote.Source;
+  details: {
+    pageTitle: MdxRemote.Source;
+    body: MdxRemote.Source;
+    footnotes?: MdxRemote.Source;
+  };
+}
+
+export interface NarrativePage {
+  pageTitle: string;
+  body: string;
+  footnotes?: string;
 }
 
 export interface ComparePage {

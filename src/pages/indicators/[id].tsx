@@ -180,8 +180,8 @@ const IndicatorPage = ({
     setSelectedCompanies(ids);
   };
 
-  const handleSelectSortStrategy = (strategy: SelectOption) => {
-    setSortStrategy(strategy.value);
+  const handleSelectSortStrategy = (strategy?: SelectOption) => {
+    if (strategy) setSortStrategy(strategy.value);
   };
 
   const handleToggleSwitch = (toggle: boolean) => {
@@ -266,6 +266,8 @@ const IndicatorPage = ({
             />
 
             <Selector<SelectOption>
+              id="sort-selector"
+              title="Sort"
               className="flex-grow w-full mt-2 md:mt-0 mx-6"
               options={sortOptions}
               onSelect={handleSelectSortStrategy}

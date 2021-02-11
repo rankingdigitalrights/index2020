@@ -115,28 +115,38 @@ export const Option = <T extends SelectOption, K extends boolean>({
 };
 
 interface SelectorProps<T extends SelectOption> {
+  id: string;
+  title: string;
   options: T[];
-  onSelect: (value: T) => void;
+  onSelect: (value?: T) => void;
+  isSearchable?: boolean;
+  isClearable?: boolean;
   className?: string;
 }
 
 const Selector = <T extends SelectOption>({
+  id,
+  title,
   options,
   onSelect,
+  isSearchable = false,
+  isClearable = false,
   className,
 }: SelectorProps<T>) => {
   const handleChange = (value: ValueType<T, false>) => {
-    if (value) onSelect(value);
+    onSelect(value || undefined);
   };
 
   return (
     <div className={c("flex flex-col justify-between h-16", className)}>
-      <span className="text-sm font-circular">Sort:</span>
+      <span className="text-sm font-circular">{title}:</span>
       <Select
-        instanceId="sort-select"
+        instanceId={id}
         options={options}
         className="font-circular text-sm"
         openMenuOnFocus
+        isSearchable={isSearchable}
+        isClearable={isClearable}
         components={{
           Input,
           IndicatorSeparator,
