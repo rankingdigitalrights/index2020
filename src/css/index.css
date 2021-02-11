@@ -78,7 +78,7 @@
   }
 
   .hero-tech-giants {
-    @apply bg-contain bg-no-repeat bg-center;
+    @apply bg-cover bg-center;
     background-image: url("../images/hero-tech-giants.jpg?size=1024");
   }
 
@@ -90,6 +90,11 @@
   .hero-algorithms {
     @apply bg-contain bg-no-repeat bg-center;
     background-image: url("../images/hero-robots-by-pawel-kuczynski.jpg?size=1024");
+  }
+
+  .hero-key-findings {
+    @apply bg-cover bg-center;
+    background-image: url("../images/bg-key-findings.jpg?size=1024");
   }
 
   .bg-key-findings {
@@ -354,7 +359,6 @@
     padding: 0;
     margin: 0;
   }
-
 
   main.spotlight h2.sticky-h {
     @apply sticky;

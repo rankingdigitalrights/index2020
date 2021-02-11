@@ -3,7 +3,7 @@ import React, {useEffect, useMemo, useRef, useState} from "react";
 import {useInView} from "react-intersection-observer";
 
 import FigureImg from "../../components/figure-img";
-import FigureSvg from "../../components/figure-svg";
+// import FigureSvg from "../../components/figure-svg";
 import Layout from "../../components/layout";
 import NarrativeContainer from "../../components/narrative-container";
 // import {components} from "../../mdx";
