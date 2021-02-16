@@ -16,7 +16,11 @@ import ImgProtest from "../../images/spotlights/soe-myanmar-protest.jpeg";
 import imgTableG4 from "../../images/spotlights/soe-table-g4.png";
 import ImgTweetFB from "../../images/spotlights/soe-tweet-fb.png";
 import ImgWhiteFlags from "../../images/spotlights/soe-white-flags.jpeg";
-import {animateSVGviewBox, toggleSVGclass} from "../../scrollama-generic";
+import {
+  animateSVGviewBox,
+  resetSVGviewBox,
+  toggleSVGclass,
+} from "../../scrollama-generic";
 
 export const getStaticProps = async () => {
   const svgFbYt = (
@@ -621,7 +625,6 @@ const SpotlightOne = ({svgFbYt, svgWorldMap}) => {
           </NarrativeContainer>
           <ScrollyFeature
             id="scrolly-map"
-            ref={ioHook2}
             story={story1}
             stepEnter={({index, element, direction}) => {
               if (element.dataset.show || element.dataset.hide) {
@@ -632,12 +635,23 @@ const SpotlightOne = ({svgFbYt, svgWorldMap}) => {
                   direction,
                 });
               }
+              if (index === 2) {
+                animateSVGviewBox("#map-asia-1 svg", "#Full-Map", "resetView");
+              }
               if (index === 2 && direction === "down") {
-                const SVG = document.querySelector("#map-asia-1 svg");
                 animateSVGviewBox(
-                  SVG,
-                  "#Full-Map",
-                  "#Shutdowns",
+                  "#map-asia-1 svg",
+                  "#Shutdowns-View",
+                  "zoom-shutdowns",
+                );
+              }
+              if (index === 3 && direction === "down") {
+                animateSVGviewBox("#map-asia-1 svg", "#Asia-View", "zoom-asia");
+              }
+              if (index === story1.steps.length - 1 && direction === "down") {
+                animateSVGviewBox(
+                  "#map-asia-1 svg",
+                  "#Shutdowns-View",
                   "zoom-shutdowns",
                 );
               }
@@ -650,7 +664,7 @@ const SpotlightOne = ({svgFbYt, svgWorldMap}) => {
               <FigureSvg
                 className="scrolly-figure bg-gray-200"
                 svg={svgWorldMap}
-                caption="Caption As Props 1"
+                caption="TODO: Caption As Props 1"
                 alt="TODO: Alternative description"
                 id="map-asia-1"
               />
@@ -682,9 +696,9 @@ const SpotlightOne = ({svgFbYt, svgWorldMap}) => {
               console.log(`Local Exit 1: ${index} - ${direction}`);
             }}
           >
-            <figure className="scrolly-figure bg-gray-200">
+            <figure className="scrolly-figure bg-gray-200 p-4">
               <FigureSvg
-                className="scrolly-figure bg-gray-200"
+                className="scrolly-figure bg-gray-200 p-4"
                 svg={svgFbYt}
                 caption="Content appealed and restored on appeal on Facebook vs. videos appealed and restored on YouTube between October 2019 and September 2020. Data for Facebook does not include the &ldquo;Fake Accounts&rdquo; category, for which appeals are not reported. Sources: <a href='https://transparency.facebook.com/community-standards-enforcement'>Community Standards Enforcement Report (Facebook)</a> and <a href='https://transparencyreport.google.com/youtube-policy/appeals'>Google Transparency Report (YouTube)</a>."
                 alt="TODO: Alternative description"
