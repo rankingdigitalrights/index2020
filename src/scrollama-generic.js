@@ -54,7 +54,7 @@ export const setupSpotlight = (
     .setup({
       step: stepSelector,
       offset: 0.7,
-      debug: true,
+      debug: false,
     })
     .onStepEnter((...args) => {
       handleStepEnter(figure, steps, ...args);

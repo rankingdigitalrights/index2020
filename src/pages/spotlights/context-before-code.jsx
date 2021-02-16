@@ -2,7 +2,6 @@
 import {promises as fsP} from "fs";
 import path from "path";
 import React from "react";
-import {useInView} from "react-intersection-observer";
 
 import story2 from "../../../data/spotlights/soe-fb-vs-youtube.json";
 import story1 from "../../../data/spotlights/soe-map-shutdowns.json";
@@ -16,11 +15,7 @@ import ImgProtest from "../../images/spotlights/soe-myanmar-protest.jpeg";
 import imgTableG4 from "../../images/spotlights/soe-table-g4.png";
 import ImgTweetFB from "../../images/spotlights/soe-tweet-fb.png";
 import ImgWhiteFlags from "../../images/spotlights/soe-white-flags.jpeg";
-import {
-  animateSVGviewBox,
-  resetSVGviewBox,
-  toggleSVGclass,
-} from "../../scrollama-generic";
+import {animateSVGviewBox, toggleSVGclass} from "../../scrollama-generic";
 
 export const getStaticProps = async () => {
   const svgFbYt = (
@@ -404,12 +399,13 @@ const section4 = (
       .
     </p>
     <p>
-      When the COVID-19 pandemic struck, Facebook sent home workers who review
-      millions of posts each day for rule violations. The company decided to put
-      its algorithms in charge instead, hoping the technology would keep content
-      moderation processes moving. But the solution had at least one critical
-      flaw: it was unable to address appeals. In an August 2020 press call,
-      Facebook explained that it had{" "}
+      When the COVID-19 pandemic struck, Facebook{" "}
+      <a href="https://about.fb.com/news/2020/12/coronavirus/">sent home</a>{" "}
+      workers who review millions of posts each day for rule violations. The
+      company decided to put its algorithms in charge instead, hoping the
+      technology would keep content moderation processes moving. But the
+      solution had at least one critical flaw: it was unable to address appeals.
+      In an August 2020 press call, Facebook explained that it had{" "}
       <a href="https://about.fb.com/wp-content/uploads/2020/08/Press-Call-Transcript.pdf">
         severely scaled back
       </a>{" "}
@@ -593,10 +589,10 @@ const section6 = (
 
 const SpotlightOne = ({svgFbYt, svgWorldMap}) => {
   // const [currentStep, setCurrentStep] = useState();
-  const [ioHook2] = useInView({
-    threshold: [0.6],
-    triggerOnce: true,
-  });
+  // const [ioHook2] = useInView({
+  //   threshold: [0.6],
+  //   triggerOnce: true,
+  // });
 
   return (
     <Layout>
