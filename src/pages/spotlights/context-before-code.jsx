@@ -260,7 +260,7 @@ const section2b = (
       </NarrativeLink>
       .
     </p>
-    <p>
+    <p className="print-only">
       The 12 telecommunications companies in the RDR Index operate in 125
       countries. In 2020,{" "}
       <NarrativeLink href="https://www.top10vpn.com/cost-of-internet-shutdowns">
@@ -282,13 +282,13 @@ const section2b = (
       shutdown executed by Bharti Airtel and its peers at the order of the Modi
       government.
     </p>
-    <p>
+    <p className="print-only">
       Marginalized people in both conflict zones have suffered doubly from
       COVID-19 and communication disruptions. But the companies carried these
       orders out in starkly different ways that had measurable impacts for
       customers.
     </p>
-    <p>
+    <p className="print-only">
       In Myanmar, while Telenor complied with government orders, the company
       publicly{" "}
       <NarrativeLink href="https://www.telenor.com/network-restrictions-in-myanmar-1-august-2020/">
@@ -314,7 +314,7 @@ const section2b = (
 
 const section2c = (
   <section>
-    <p>
+    <p className="print-only">
       By contrast, India&rsquo;s Bharti Airtel has exercised an apparent policy
       of silence, reporting no information about the order, or data on
       shutdowns. In India, the world&rsquo;s{" "}
@@ -327,7 +327,7 @@ const section2c = (
       </NarrativeLink>{" "}
       among those who are perpetually disconnected.
     </p>
-    <p>
+    <p className="print-only">
       Telenor&rsquo;s response shows how transparency can form a breakwater
       against network shutdowns. When they receive a shutdown order, we urge
       companies to make this information public. But they must also take a stand
